@@ -5,6 +5,7 @@ Example for implementing PyTorch ATen operations as NKI kernels, starting with e
 
 - eager mode: https://github.com/pytorch/xla/blob/de7568651486a4d2e45b589090d2b328e2f8f3f7/docs/source/learn/eager.md 
 - Main ATen folder for contributions: https://github.com/pytorch/pytorch/tree/b8f383107eebd9495a0f132d58a970e178e15930/aten/src/ATen/native 
+- list of ATen operations: https://pytorch.org/docs/stable/torch.compiler_ir.html 
 
 Env creation:
 1. create a new python env, install jupyter lab

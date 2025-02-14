@@ -1,0 +1,198 @@
+-----
+nki.language.program_id
+
+Signature:
+nki.language.program_id(axis)
+
+Description:
+Index of the current SPMD program along the given axis in the launch grid.
+
+Parameters:
+axis – The axis of the ND launch grid.
+
+Returns:
+The program id along axis in the launch grid
+-----
+nki.language.num_programs
+
+Signature:
+nki.language.num_programs(axes=None)
+
+Description:
+Number of SPMD programs along the given axes in the launch grid. If axes is not provided, returns the total number of programs.
+
+Parameters:
+axes – The axes of the ND launch grid. If not provided, returns the total number of programs along the entire launch grid.
+
+Returns:
+The number of SPMD(single process multiple data) programs along axes in the launch grid
+-----
+nki.language.program_ndim
+
+Signature:
+nki.language.program_ndim()
+
+Description:
+Number of dimensions in the SPMD launch grid.
+
+Returns:
+The number of dimensions in the launch grid, i.e. the number of axes
+-----
+nki.language.spmd_dim
+
+Signature:
+nki.language.spmd_dim = Ellipsis
+
+Description:
+Create a dimension in the SPMD launch grid of a NKI kernel with sub-dimension tiling.
+A key use case for spmd_dim is to shard an existing NKI kernel over multiple NeuronCores without modifying the internal kernel implementation. Suppose we have a kernel, nki_spmd_kernel, which is launched with a 2D SPMD grid, (4, 2). We can shard the first dimension of the launch grid (size 4) over two physical NeuronCores by directly manipulating the launch grid as follows:
+
+Example:
+import neuronxcc.nki.language as nl
+
+
+@nki.jit
+def nki_spmd_kernel(a):
+  b = nl.ndarray(a.shape, dtype=a.dtype, buffer=nl.shared_hbm)
+  i = nl.program_id(0)
+  j = nl.program_id(1)
+  
+  a_tile = nl.load(a[i, j])
+  nl.store(b[i, j], a_tile)
+
+  return b
+
+############################################################################
+# Example 1: Let compiler decide how to distribute the instances of spmd kernel
+############################################################################
+dst = nki_spmd_kernel[4, 2](src)
+
+############################################################################
+# Example 2: Distribute SPMD kernel instances to physical NeuronCores with
+# explicit annotations. Expected physical NeuronCore assignments:
+#   Physical NC [0]: kernel[0, 0], kernel[0, 1], kernel[1, 0], kernel[1, 1]
+#   Physical NC [1]: kernel[2, 0], kernel[2, 1], kernel[3, 0], kernel[3, 1]
+############################################################################
+dst = nki_spmd_kernel[nl.spmd_dim(nl.nc(2), 2), 2](src)
+dst = nki_spmd_kernel[nl.nc(2) * 2, 2](src)  # syntactic sugar
+
+############################################################################
+# Example 3: Distribute SPMD kernel instances to physical NeuronCores with
+# explicit annotations. Expected physical NeuronCore assignments:
+#   Physical NC [0]: kernel[0, 0], kernel[0, 1], kernel[2, 0], kernel[2, 1]
+#   Physical NC [1]: kernel[1, 0], kernel[1, 1], kernel[3, 0], kernel[3, 1]
+############################################################################
+dst = nki_spmd_kernel[nl.spmd_dim(2, nl.nc(2)), 2](src)
+dst = nki_spmd_kernel[2 * nl.nc(2), 2](src)  # syntactic sugar
+-----
+nki.language.nc
+
+Signature:
+nki.language.nc = Ellipsis
+
+Description:
+Create a logical neuron core dimension in launch grid.
+The instances of spmd kernel will be distributed to different physical neuron cores on the annotated dimension.
+
+Example:
+# Let compiler decide how to distribute the instances of spmd kernel
+c = kernel[2, 2](a, b)
+
+import neuronxcc.nki.language as nl
+
+# Distribute the kernel to physical neuron cores around the first dimension
+# of the spmd grid.
+c = kernel[nl.nc(2), 2](a, b)
+# This means:
+# Physical NC [0]: kernel[0, 0], kernel[0, 1]
+# Physical NC [1]: kernel[1, 0], kernel[1, 1]
+
+Note:
+Sometimes the size of a spmd dimension is bigger than the number of available physical neuron cores. We can control the distribution with the following syntax:
+import neuronxcc.nki.language as nl
+
+
+@nki.jit
+def nki_spmd_kernel(a):
+  b = nl.ndarray(a.shape, dtype=a.dtype, buffer=nl.shared_hbm)
+  i = nl.program_id(0)
+  j = nl.program_id(1)
+  
+  a_tile = nl.load(a[i, j])
+  nl.store(b[i, j], a_tile)
+
+  return b
+
+############################################################################
+# Example 1: Let compiler decide how to distribute the instances of spmd kernel
+############################################################################
+dst = nki_spmd_kernel[4, 2](src)
+
+############################################################################
+# Example 2: Distribute SPMD kernel instances to physical NeuronCores with
+# explicit annotations. Expected physical NeuronCore assignments:
+#   Physical NC [0]: kernel[0, 0], kernel[0, 1], kernel[1, 0], kernel[1, 1]
+#   Physical NC [1]: kernel[2, 0], kernel[2, 1], kernel[3, 0], kernel[3, 1]
+############################################################################
+dst = nki_spmd_kernel[nl.spmd_dim(nl.nc(2), 2), 2](src)
+dst = nki_spmd_kernel[nl.nc(2) * 2, 2](src)  # syntactic sugar
+
+############################################################################
+# Example 3: Distribute SPMD kernel instances to physical NeuronCores with
+# explicit annotations. Expected physical NeuronCore assignments:
+#   Physical NC [0]: kernel[0, 0], kernel[0, 1], kernel[2, 0], kernel[2, 1]
+#   Physical NC [1]: kernel[1, 0], kernel[1, 1], kernel[3, 0], kernel[3, 1]
+############################################################################
+dst = nki_spmd_kernel[nl.spmd_dim(2, nl.nc(2)), 2](src)
+dst = nki_spmd_kernel[2 * nl.nc(2), 2](src)  # syntactic sugar
+-----
+nki.language.device_print
+
+Signature:
+nki.language.device_print(prefix, x, *, mask=None, **kwargs)
+
+Description:
+Print a message with a String prefix followed by the value of a tile x. Printing is currently only supported in kernel simulation mode (see nki.simulate_kernel for a code example).
+
+Parameters:
+prefix – prefix of the print message
+x – data to print out
+mask – (optional) a compile-time constant predicate that controls whether/how this instruction is executed (see NKI API Masking for details)
+
+Returns:
+None
+-----
+nki.language.loop_reduce
+
+Signature:
+nki.language.loop_reduce(x, op, loop_indices, *, dtype=None, mask=None, **kwargs)
+
+Description:
+Apply reduce operation over a loop. This is an ideal instruction to compute a high performance reduce_max or reduce_min.
+
+Note: The destination tile is also the rhs input to op. For example,
+b = nl.zeros((N_TILE_SIZE, M_TILE_SIZE), dtype=float32, buffer=nl.sbuf)
+for k_i in affine_range(NUM_K_BLOCKS):
+
+  # Skipping over multiple nested loops here.
+  # a, is a psum tile from a matmul accumulation group.
+  b = nl.loop_reduce(a, op=np.add, loop_indices=[k_i], dtype=nl.float32)
+is the same as:
+b = nl.zeros((N_TILE_SIZE, M_TILE_SIZE), dtype=nl.float32, buffer=nl.sbuf)
+for k_i in affine_range(NUM_K_BLOCKS):
+
+  # Skipping over multiple nested loops here.
+  # a, is a psum tile from a matmul accumulation group.
+  b = nisa.tensor_tensor(data1=b, data2=a, op=np.add, dtype=nl.float32)
+If you are trying to use this instruction only for accumulating results on SBUF, consider simply using the += operator instead.
+The loop_indices list enables the compiler to recognize which loops this reduction can be optimized across as part of any aggressive loop-level optimizations it may perform.
+
+Parameters:
+x – a tile.
+op – numpy ALU operator to use to reduce over the input tile.
+loop_indices – a single loop index or a tuple of loop indices along which the reduction operation is performed. Can be numbers or loop_index objects coming from nl.affine_range.
+dtype – (optional) data type to cast the output type to (see Supported Data Types for more information); if not specified, it will default to be the same as the data type of the input tile.
+mask – (optional) a compile-time constant predicate that controls whether/how this instruction is executed (see NKI API Masking for details)
+
+Returns:
+the reduced resulting tile

@@ -1,0 +1,48 @@
+-----
+nki.language.par_dim
+
+Signature:
+nki.language.par_dim = Ellipsis
+
+Description:
+Mark a dimension explicitly as a partition dimension.
+-----
+nki.language.psum
+
+Signature:
+nki.language.psum = Ellipsis
+
+Description:
+PSUM - Only visible to each individual kernel instance in the SPMD grid, alias of nki.compiler.psum.auto_alloc()
+-----
+nki.language.sbuf
+
+Signature:
+nki.language.sbuf = Ellipsis
+
+Description:
+State Buffer - Only visible to each individual kernel instance in the SPMD grid, alias of nki.compiler.sbuf.auto_alloc()
+-----
+nki.language.hbm
+
+Signature:
+nki.language.hbm = Ellipsis
+
+Description:
+HBM - Alias of private_hbm
+-----
+nki.language.private_hbm
+
+Signature:
+nki.language.private_hbm = Ellipsis
+
+Description:
+HBM - Only visible to each individual kernel instance in the SPMD grid
+-----
+nki.language.shared_hbm
+
+Signature:
+nki.language.shared_hbm = Ellipsis
+
+Description:
+Shared HBM - Visible to all kernel instances in the SPMD grid

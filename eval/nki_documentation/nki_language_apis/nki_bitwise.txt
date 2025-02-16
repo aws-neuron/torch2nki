@@ -1,0 +1,113 @@
+-----
+nki.language.bitwise_and
+
+Signature:
+nki.language.bitwise_and(x, y, *, dtype=None, mask=None, **kwargs)
+
+Description:
+Bitwise AND of the two inputs, element-wise.
+((Similar to numpy.bitwise_and))
+Computes the bit-wise AND of the underlying binary representation of the integers in the input tiles. This function implements the C/Python operator &
+
+Parameters:
+x – a tile or a scalar value of integer type.
+y – a tile or a scalar value of integer type. x.shape and y.shape must be broadcastable to a common shape, that will become the shape of the output.
+dtype – (optional) data type to cast the output type to (see Supported Data Types for more information); if not specified, it will default to be the same as the data type of the input tiles, or whichever input type has the highest precision (see NKI Type Promotion for more information);
+mask – (optional) a compile-time constant predicate that controls whether/how this instruction is executed (see NKI API Masking for details)
+
+Returns:
+a tile that has values x & y.
+-----
+nki.language.bitwise_or
+
+Signature:
+nki.language.bitwise_or(x, y, *, dtype=None, mask=None, **kwargs)
+
+Description:
+Bitwise OR of the two inputs, element-wise.
+((Similar to numpy.bitwise_or))
+Computes the bit-wise OR of the underlying binary representation of the integers in the input tiles. This function implements the C/Python operator |
+
+Parameters:
+x – a tile or a scalar value of integer type.
+y – a tile or a scalar value of integer type. x.shape and y.shape must be broadcastable to a common shape, that will become the shape of the output.
+dtype – (optional) data type to cast the output type to (see Supported Data Types for more information); if not specified, it will default to be the same as the data type of the input tiles, or whichever input type has the highest precision (see NKI Type Promotion for more information);
+mask – (optional) a compile-time constant predicate that controls whether/how this instruction is executed (see NKI API Masking for details)
+
+Returns:
+a tile that has values x | y.
+-----
+nki.language.bitwise_xor
+
+Signature:
+nki.language.bitwise_xor(x, y, *, dtype=None, mask=None, **kwargs)
+
+Description:
+Bitwise XOR of the two inputs, element-wise.
+((Similar to numpy.bitwise_xor))
+Computes the bit-wise XOR of the underlying binary representation of the integers in the input tiles. This function implements the C/Python operator ^
+
+Parameters:
+x – a tile or a scalar value of integer type.
+y – a tile or a scalar value of integer type. x.shape and y.shape must be broadcastable to a common shape, that will become the shape of the output.
+dtype – (optional) data type to cast the output type to (see Supported Data Types for more information); if not specified, it will default to be the same as the data type of the input tiles, or whichever input type has the highest precision (see NKI Type Promotion for more information);
+mask – (optional) a compile-time constant predicate that controls whether/how this instruction is executed (see NKI API Masking for details)
+
+Returns:
+a tile that has values x ^ y.
+-----
+nki.language.invert
+
+Signature:
+nki.language.invert(x, *, dtype=None, mask=None, **kwargs)
+
+Description:
+Bitwise NOT of the input, element-wise.
+((Similar to numpy.invert))
+Computes the bit-wise NOT of the underlying binary representation of the integers in the input tile. This ufunc implements the C/Python operator ~
+
+Parameters:
+x – a tile.
+dtype – (optional) data type to cast the output type to (see Supported Data Types for more information); if not specified, it will default to be the same as the data type of the input tile.
+mask – (optional) a compile-time constant predicate that controls whether/how this instruction is executed (see NKI API Masking for details)
+
+Returns:
+a tile with bitwise NOT x element-wise.
+-----
+nki.language.left_shift
+
+Signature:
+nki.language.left_shift(x, y, *, dtype=None, mask=None, **kwargs)
+
+Description:
+Bitwise left-shift x by y, element-wise.
+((Similar to numpy.left_shift))
+Computes the bit-wise left shift of the underlying binary representation of the integers in the input tiles. This function implements the C/Python operator <<
+
+Parameters:
+x – a tile or a scalar value of integer type.
+y – a tile or a scalar value of integer type. x.shape and y.shape must be broadcastable to a common shape, that will become the shape of the output.
+dtype – (optional) data type to cast the output type to (see Supported Data Types for more information); if not specified, it will default to be the same as the data type of the input tiles, or whichever input type has the highest precision (see NKI Type Promotion for more information);
+mask – (optional) a compile-time constant predicate that controls whether/how this instruction is executed (see NKI API Masking for details)
+
+Returns:
+a tile that has values x << y.
+-----
+nki.language.right_shift
+
+Signature:
+nki.language.right_shift(x, y, *, dtype=None, mask=None, **kwargs)
+
+Description:
+Bitwise right-shift x by y, element-wise.
+((Similar to numpy.right_shift))
+Computes the bit-wise right shift of the underlying binary representation of the integers in the input tiles. This function implements the C/Python operator >>
+
+Parameters:
+x – a tile or a scalar value of integer type.
+y – a tile or a scalar value of integer type. x.shape and y.shape must be broadcastable to a common shape, that will become the shape of the output.
+dtype – (optional) data type to cast the output type to (see Supported Data Types for more information); if not specified, it will default to be the same as the data type of the input tiles, or whichever input type has the highest precision (see NKI Type Promotion for more information);
+mask – (optional) a compile-time constant predicate that controls whether/how this instruction is executed (see NKI API Masking for details)
+
+Returns:
+a tile that has values x >> y.

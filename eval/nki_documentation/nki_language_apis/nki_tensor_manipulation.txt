@@ -1,0 +1,80 @@
+-----
+nki.language.ds
+
+Signature:
+nki.language.ds(start, size)
+
+Description:
+Construct a dynamic slice for simple tensor indexing.
+
+Example:
+import neuronxcc.nki.language as nl
+...
+
+
+
+@nki.jit(mode="simulation")
+def example_kernel(in_tensor):
+  out_tensor = nl.ndarray(in_tensor.shape, dtype=in_tensor.dtype,
+                          buffer=nl.shared_hbm)
+  for i in nl.affine_range(in_tensor.shape[1] // 512):
+    tile = nl.load(in_tensor[:, (i * 512):((i + 1) * 512)])
+    # Same as above but use ds (dynamic slice) instead of the native
+    # slice syntax
+    tile = nl.load(in_tensor[:, nl.ds(i * 512, 512)])
+-----
+nki.language.arange
+
+Signature:
+nki.language.arange(*args)
+
+Description:
+Return contiguous values within a given interval, used for indexing a tensor to define a tile.
+((Similar to numpy.arange))
+arange can be called as:
+arange(stop): Values are generated within the half-open interval [0, stop) (the interval including zero, excluding stop).
+arange(start, stop): Values are generated within the half-open interval [start, stop) (the interval including start, excluding stop).
+-----
+nki.language.mgrid
+
+Signature:
+nki.language.mgrid = Ellipsis
+
+Description:
+Same as NumPy mgrid: “An instance which returns a dense (or fleshed out) mesh-grid when indexed, so that each returned argument has the same shape. The dimensions and number of the output arrays are equal to the number of indexing dimensions.”
+Complex numbers are not supported in the step length.
+((Similar to numpy.mgrid))
+
+Example:
+import neuronxcc.nki.language as nl
+...
+
+
+i_p, i_f = nl.mgrid[0:128, 0:512]
+tile = nl.load(in_tensor[i_p, i_f])
+...
+nl.store(out_tensor[i_p, i_f], tile)
+import neuronxcc.nki.language as nl
+...
+
+
+grid = nl.mgrid[0:128, 0:512]
+tile = nl.load(in_tensor[grid.p, grid.x])
+...
+nl.store(out_tensor[grid.p, grid.x], tile)
+-----
+nki.language.expand_dims
+
+Signature:
+nki.language.expand_dims(data, axis)
+
+Description:
+Expand the shape of a tile. Insert a new axis that will appear at the axis position in the expanded tile shape. Currently only supports expanding dimensions after the last index of the tile.
+((Similar to numpy.expand_dims))
+
+Parameters:
+data – a tile input
+axis – int or tuple/list of ints. Position in the expanded axes where the new axis (or axes) is placed; must be free dimensions, not partition dimension (0); Currently only supports axis (or axes) after the last index.
+
+Returns:
+a tile with view of input data with the number of dimensions increased.

@@ -1,0 +1,151 @@
+-----
+nki.language.ndarray
+
+Signature:
+nki.language.ndarray(shape, dtype, *, buffer=None, name='', **kwargs)
+
+Description:
+Create a new tensor of given shape and dtype on the specified buffer.
+((Similar to numpy.ndarray))
+
+Parameters:
+shape – the shape of the tensor.
+dtype – the data type of the tensor (see Supported Data Types for more information).
+buffer – the specific buffer (ie, sbuf, psum, hbm), defaults to sbuf.
+name – the name of the tensor.
+
+Returns:
+a new tensor allocated on the buffer.
+-----
+nki.language.zeros
+
+Signature:
+nki.language.zeros(shape, dtype, *, buffer=None, name='', **kwargs)
+
+Description:
+Create a new tensor of given shape and dtype on the specified buffer, filled with zeros.
+((Similar to numpy.zeros))
+
+Parameters:
+shape – the shape of the tensor.
+dtype – the data type of the tensor (see Supported Data Types for more information).
+buffer – the specific buffer (ie, sbuf, psum, hbm), defaults to sbuf.
+name – the name of the tensor.
+
+Returns:
+a new tensor allocated on the buffer.
+-----
+nki.language.zeros_like
+
+Signature:
+nki.language.zeros_like(a, dtype=None, *, buffer=None, name='', **kwargs)
+
+Description:
+Create a new tensor of zeros with the same shape and type as a given tensor.
+((Similar to numpy.zeros_like))
+
+Parameters:
+a – the tensor.
+dtype – the data type of the tensor (see Supported Data Types for more information).
+buffer – the specific buffer (ie, sbuf, psum, hbm), defaults to sbuf.
+name – the name of the tensor.
+
+Returns:
+a tensor of zeros with the same shape and type as a given tensor.
+-----
+nki.language.ones
+
+Signature:
+nki.language.ones(shape, dtype, *, buffer=None, name='', **kwargs)
+
+Description:
+Create a new tensor of given shape and dtype on the specified buffer, filled with ones.
+((Similar to numpy.ones))
+
+Parameters:
+shape – the shape of the tensor.
+dtype – the data type of the tensor (see Supported Data Types for more information).
+buffer – the specific buffer (ie, sbuf, psum, hbm), defaults to sbuf.
+name – the name of the tensor.
+
+Returns:
+a new tensor allocated on the buffer.
+-----
+nki.language.full
+
+Signature:
+nki.language.full(shape, fill_value, dtype, *, buffer=None, name='', **kwargs)
+
+Description:
+Create a new tensor of given shape and dtype on the specified buffer, filled with initial value.
+((Similar to numpy.full))
+
+Parameters:
+shape – the shape of the tensor.
+fill_value – the initial value of the tensor.
+dtype – the data type of the tensor (see Supported Data Types for more information).
+buffer – the specific buffer (ie, sbuf, psum, hbm), defaults to sbuf.
+name – the name of the tensor.
+
+Returns:
+a new tensor allocated on the buffer.
+-----
+nki.language.rand
+
+Signature:
+nki.language.rand(shape, dtype=<class 'numpy.float32'>, **kwargs)
+
+Description:
+Generate a tile of given shape and dtype, filled with random values that are sampled from a uniform distribution between 0 and 1.
+
+Parameters:
+shape – the shape of the tile.
+dtype – the data type of the tile (see Supported Data Types for more information).
+
+Returns:
+a tile with random values.
+-----
+nki.language.random_seed
+
+Signature:
+nki.language.random_seed(seed, *, mask=None, **kwargs)
+
+Description:
+Sets a seed, specified by user, to the random number generator on HW. Using the same seed will generate the same sequence of random numbers when using together with the random() API
+
+Parameters:
+seed – a scalar value to use as the seed.
+mask – (optional) a compile-time constant predicate that controls whether/how this instruction is executed (see NKI API Masking for details)
+
+Returns:
+none
+-----
+nki.language.shared_constant
+
+Signature:
+nki.language.shared_constant(constant, dtype=None, **kwargs)
+
+Description:
+Create a new tensor filled with the data specified by data array.
+
+Parameters:
+constant – the constant data to be filled into a tensor
+
+Returns:
+a tensor which contains the constant data
+-----
+nki.language.shared_identity_matrix
+
+Signature:
+nki.language.shared_identity_matrix(n, dtype=<class 'numpy.uint8'>, **kwargs)
+
+Description:
+Create a new identity tensor with specified data type.
+This function has the same behavior to nki.language.shared_constant but is preferred if the constant matrix is an identity matrix. The compiler will reuse all the identity matrices of the same dtype in the graph to save space.
+
+Parameters:
+n – the number of rows(and columns) of the returned identity matrix
+dtype – the data type of the tensor, default to be np.uint8 (see Supported Data Types for more information).
+
+Returns:
+a tensor which contains the identity tensor

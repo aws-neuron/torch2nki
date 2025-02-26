@@ -1,0 +1,19 @@
+-----
+nki.language.where
+
+Signature:
+nki.language.where(condition, x, y, *, dtype=None, mask=None, **kwargs)
+
+Description:
+Return elements chosen from x or y depending on condition.
+((Similar to numpy.where))
+
+Parameters:
+condition – if True, yield x, otherwise yield y.
+x – a tile with values from which to choose if condition is True.
+y – a tile or a numerical value from which to choose if condition is False.
+dtype – (optional) data type to cast the output type to (see Supported Data Types for more information); if not specified, it will default to be the same as the data type of the input tiles, or whichever input type has the highest precision (see NKI Type Promotion for more information);
+mask – (optional) a compile-time constant predicate that controls whether/how this instruction is executed (see NKI API Masking for details)
+
+Returns:
+a tile with elements from x where condition is True, and elements from y otherwise.

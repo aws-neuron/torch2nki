@@ -1,0 +1,103 @@
+-----
+nki.language.static_range
+
+Signature:
+nki.language.static_range(*args)
+
+Description:
+Create a sequence of numbers for use as loop iterators in NKI, resulting in a fully unrolled loop. Unlike affine_range or sequential_range, Neuron compiler will fully unroll the loop during NKI kernel tracing.
+
+Notes:
+Due to loop unrolling, compilation time may go up significantly compared to affine_range or sequential_range.
+On-chip memory (SBUF) usage may also go up significantly compared to affine_range or sequential_range.
+No loop-level optimizations will be performed in the compiler.
+static_range should only be used as a fall-back option for debugging purposes when affine_range or sequential_range is giving functionally incorrect results or undesirable performance characteristics.
+-----
+nki.language.affine_range
+
+Signature:
+nki.language.affine_range(*args, **kwargs)
+
+Description:
+Create a sequence of numbers for use as parallel loop iterators in NKI. affine_range should be the default loop iterator choice, when there is no loop carried dependency. Note, associative reductions are not considered loop carried dependencies in this context. A concrete example of associative reduction is multiple nl.matmul or nisa.nc_matmul calls accumulating into the same output buffer defined outside of this loop level (see code example #2 below).
+When the above conditions are not met, we recommend using sequential_range instead.
+
+Notes:
+Using affine_range prevents Neuron compiler from unrolling the loops until entering compiler backend, which typically results in better compilation time compared to the fully unrolled iterator static_range.
+Using affine_range also allows Neuron compiler to perform additional loop-level optimizations, such as loop vectorization in current release. The exact type of loop-level optimizations applied is subject to changes in future releases.
+Since each kernel instance only runs on a single NeuronCore, affine_range does not parallelize different loop iterations across multiple NeuronCores. However, different iterations could be parallelized/pipelined on different compute engines within a NeuronCore depending on the invoked instructions (engines) and data dependency in the loop body.
+
+Example:
+ 1import neuronxcc.nki.language as nl
+ 2
+ 3#######################################################################
+ 4# Example 1: No loop carried dependency
+ 5# Input/Output tensor shape: [128, 2048]
+ 6# Load one tile ([128, 512]) at a time, square the tensor element-wise,
+ 7# and store it into output tile
+ 8#######################################################################
+ 9
+10# Every loop instance works on an independent input/output tile.
+11# No data dependency between loop instances.
+12for i_input in nl.affine_range(input.shape[1] // 512):
+13  offset = i_input * 512
+14  input_sb = nl.load(input[0:input.shape[0], offset:offset+512])
+15  result = nl.multiply(input_sb, input_sb)
+16  nl.store(output[0:input.shape[0], offset:offset+512], result)
+17
+18#######################################################################
+19# Example 2: Matmul output buffer accumulation, a type of associative reduction
+20# Input tensor shapes for nl.matmul: xT[K=2048, M=128] and y[K=2048, N=128]
+21# Load one tile ([128, 128]) from both xT and y at a time, matmul and
+22# accumulate into the same output buffer
+23#######################################################################
+24
+25result_psum = nl.zeros((128, 128), dtype=nl.float32, buffer=nl.psum)
+26for i_K in nl.affine_range(xT.shape[0] // 128):
+27  offset = i_K * 128
+28  xT_sbuf = nl.load(offset:offset+128, 0:xT.shape[1]])
+29  y_sbuf = nl.load(offset:offset+128, 0:y.shape[1]])
+30
+31  result_psum += nl.matmul(xT_sbuf, y_sbuf, transpose_x=True)
+-----
+nki.language.sequential_range
+
+Signature:
+nki.language.sequential_range(*args, **kwargs)
+
+Description:
+Create a sequence of numbers for use as sequential loop iterators in NKI. sequential_range should be used when there is a loop carried dependency. Note, associative reductions are not considered loop carried dependencies in this context. See affine_range for an example of such associative reduction.
+
+Notes:
+Inside a NKI kernel, any use of Python range(...) will be replaced with sequential_range(...) by Neuron compiler.
+Using sequential_range prevents Neuron compiler from unrolling the loops until entering compiler backend, which typically results in better compilation time compared to the fully unrolled iterator static_range.
+Using sequential_range informs Neuron compiler to respect inter-loop dependency and perform much more conservative loop-level optimizations compared to affine_range.
+Using affine_range instead of sequential_range in case of loop carried dependency incorrectly is considered unsafe and could lead to numerical errors.
+
+Example:
+ 1import neuronxcc.nki.language as nl
+ 2
+ 3#######################################################################
+ 4# Example 1: Loop carried dependency from tiling tensor_tensor_scan
+ 5# Both sbuf tensor input0 and input1 shapes: [128, 2048]
+ 6# Perform a scan operation between the two inputs using a tile size of [128, 512]
+ 7# Store the scan output to another [128, 2048] tensor
+ 8#######################################################################
+ 9
+10# Loop iterations communicate through this init tensor
+11init = nl.zeros((128, 1), dtype=input0.dtype)
+12
+13# This loop will only produce correct results if the iterations are performed in order
+14for i_input in nl.sequential_range(input0.shape[1] // 512):
+15  offset = i_input * 512
+16
+17  # Depends on scan result from the previous loop iteration
+18  result = nisa.tensor_tensor_scan(input0[:, offset:offset+512],
+19                                   input1[:, offset:offset+512],
+20                                   initial=init,
+21                                   op0=nl.multiply, op1=nl.add)
+22
+23  nl.store(output[0:input0.shape[0], offset:offset+512], result)
+24
+25  # Prepare initial result for scan in the next loop iteration
+26  init[:, :] = result[:, 511]

@@ -1,0 +1,15 @@
+tfloat32
+
+32-bit floating-point number (1S,8E,10M)
+
+bfloat16
+
+16-bit floating-point number (1S,8E,7M)
+
+float8_e4m3
+
+8-bit floating-point number (1S,4E,3M)
+
+float8_e5m2
+
+8-bit floating-point number (1S,5E,2M)

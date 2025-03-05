@@ -1,0 +1,57 @@
+Here's a custom kernel for matrix multiplication using the AWS Neural Kernel Interface (NKI). This implementation follows best practices for modularity, maintainability, and efficient compilation. 
+
+### Matrix Multiplication Kernel
+
+```python
+from neuronxcc import nki
+import neuronxcc.nki.language as nl
+
+@nki.jit
+def nki_matrix_multiply(lhs_tensor, rhs_tensor):
+    # Retrieve the shapes of the input tensors
+    lhs_rows, lhs_cols = lhs_tensor.shape
+    rhs_cols = rhs_tensor.shape[1]
+
+    # Create an output tensor with the appropriate shape
+    output_tensor = nl.zeros((lhs_rows, rhs_cols), dtype=lhs_tensor.dtype, buffer=nl.shared_hbm)
+
+    # Loop over the output tensor dimensions
+    for i in nl.affine_range(lhs_rows):
+        for j in nl.affine_range(rhs_cols):
+            # Initialize the accumulator for the sum
+            acc = nl.zeros(1, dtype=lhs_tensor.dtype)
+
+            # Perform the dot product for the current output element
+            for k in nl.affine_range(lhs_cols):
+                lhs_val = nl.load(lhs_tensor[i, k])
+                rhs_val = nl.load(rhs_tensor[k, j])
+                acc += nl.multiply(lhs_val, rhs_val)
+
+            # Store the result in the output tensor
+            nl.store(output_tensor[i, j], acc)
+
+    return output_tensor
+```
+
+### Explanation of the Code
+
+1. **Function Declaration**: The kernel is defined with the `@nki.jit` decorator, which compiles the function for execution on the target hardware.
+
+2. **Tensor Shapes**: The shapes of the input tensors (`lhs_tensor` and `rhs_tensor`) are retrieved, allowing the kernel to operate flexibly on matrices of different sizes.
+
+3. **Output Tensor Initialization**: An output tensor (`output_tensor`) is created with the appropriate shape using `nl.zeros`, which allocates space in shared HBM.
+
+4. **Nested Loop Structure**: 
+   - The outer loops iterate over the dimensions of the output tensor (`lhs_rows` and `rhs_cols`).
+   - For each output element, an accumulator (`acc`) is initialized to store the dot product result.
+
+5. **Dot Product Calculation**: The innermost loop iterates over the common dimension (`lhs_cols`), loading the corresponding elements from the left-hand side (`lhs_tensor`) and right-hand side (`rhs_tensor`), multiplying them, and adding the result to the accumulator.
+
+6. **Result Storage**: After completing the accumulation for each output element, the result is stored back into the `output_tensor`.
+
+### Best Practices
+- **Modularity**: The kernel is structured with clear logical sections for initialization, looping, computation, and storage, making it easy to follow and modify.
+- **Maintainability**: The use of meaningful variable names and comments helps to clarify the purpose of each section of the code.
+- **Efficiency**: Use of `nl.load` and `nl.store` ensures that operations are performed on the on-chip memory (SBUF), which is faster than direct HBM access.
+
+This kernel can be further optimized based on specific hardware capabilities or requirements, such as tiling or vectorization techniques, depending on the size of the matrices being multiplied.

@@ -1,52 +1,37 @@
+# Use the Conversation API to send a text message to Anthropic Claude.
+
 import boto3
-import json
+from botocore.exceptions import ClientError
 
+# Create a Bedrock Runtime client in the AWS Region you want to use.
+client = boto3.client("bedrock-runtime", region_name="us-west-2")
 
+# Set the model ID, e.g., Claude 3 Haiku.
+model_id = "anthropic.claude-3-7-sonnet-20250219-v1:0"
 
-def generate(prompt, max_tokens = 500, temperature = 0.7, top_k = 50, top_p = 0.9):
-    """
-    Generates a text completion using the specified model from AWS Bedrock.
-
-    Parameters:
-    - prompt (str): The initial text prompt to generate the completion from.
-    - max_tokens (int, optional): The maximum number of tokens to generate. Default is 500.
-    - temperature (float, optional): Controls the randomness of predictions. Default is 0.7.
-    - top_k (int, optional): The number of highest probability vocabulary tokens to keep for sampling. Default is 50.
-    - top_p (float, optional): The cumulative probability of parameter highest probability tokens. Default is 0.9.
-
-    Returns:
-    - str: The generated text completion.
-    """
-    #Make the AWS Bedrock Client
-
-    bedrock_runtime = boto3.client("bedrock-runtime", region_name="us-west-2")
-
-    #Define the payload
-    payload = {
-    "prompt": prompt, 
-    "max_tokens_to_sample": max_tokens,
-    "temperature": temperature, 
-    "top_k": top_k,
-    "top_p": top_p,
+# Start a conversation with the user message.
+user_message = "Describe the purpose of a 'hello world' program in one line."
+conversation = [
+    {
+        "role": "user",
+        "content": [{"text": user_message}],
     }
-    payload_str = json.dumps(payload)
+]
 
-    #Call the model
-    response = bedrock_runtime.invoke_model(
-    modelId = "anthropic.claude-3-5-sonnet-20240620-v1:0",
-        body=payload_str
+try:
+    # Send the message to the model, using a basic inference configuration.
+    response = client.converse(
+        modelId=model_id,
+        messages=conversation,
+        inferenceConfig={"maxTokens": 512, "temperature": 0.5, "topP": 0.9},
     )
 
-    #parse & return
-    response_body_text = json.loads(response["body"].read().decode("utf-8"))["completion"]
-    return response_body_text
+    # Extract and print the response text.
+    response_text = response["output"]["message"]["content"][0]["text"]
+    print(response_text)
+
+except (ClientError, Exception) as e:
+    print(f"ERROR: Can't invoke '{model_id}'. Reason: {e}")
+    exit(1)
 
 
-
-def main():
-    print(generate("Hello, how are you?"))
-
-
-
-if __name__ == "__main__":
-    main()

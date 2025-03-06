@@ -43,7 +43,7 @@ def find_function_name_in_code(kernel_code):
 
 def main():
     # Extract the kernel code from the LLM-generated file
-    file_path = "../../generation/samples/2_naive_o4_generator.txt"  # TODO: change to correct file path or make file path an arg
+    file_path = "../../generation/samples/vector_add.txt"  # TODO: change to correct file path or make file path an arg
     
     # Extract the actual code from the LLM output
     kernel_code = extract_kernel_from_llm_response(file_path)
@@ -59,12 +59,12 @@ def main():
     #exec(kernel_code, globals())
 
     #write kernel code to a python file
-    with open("dot_product_kernel.py", "w", encoding="utf-8") as f:
+    with open("vector_add.py", "w", encoding="utf-8") as f:
         f.write(kernel_code)
 
 
     #import kernel code
-    from dot_product_kernel import nki_dot_product  
+    from vector_add import vector_add_kernel  
 
 
 
@@ -78,13 +78,13 @@ def main():
     # This example uses the kernel's expected shape: (lhs_rows, lhs_cols) and (lhs_cols, rhs_cols).
     # Run NKI kernel using simulate_kernel
     output_nki = nki.simulate_kernel(
-        nki_dot_product, 
+        vector_add_kernel, 
         np.array(lhs_small), 
         np.array(rhs_small)
     )
 
     # Compare with PyTorch reference to check correctness
-    output_torch = torch.dot(lhs_small, rhs_small)
+    output_torch = torch.add(lhs_small, rhs_small)
 
     # allclose check
     if torch.allclose(output_torch, torch.tensor(output_nki), atol=1e-4, rtol=1e-2):

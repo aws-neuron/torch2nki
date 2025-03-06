@@ -1,4 +1,3 @@
-```python
 from neuronxcc import nki
 import neuronxcc.nki.language as nl
 
@@ -18,4 +17,3 @@ def nki_dot_product(a_tensor, b_tensor):
         sum_result += nl.multiply(a_value, b_value)
 
     return sum_result
-```

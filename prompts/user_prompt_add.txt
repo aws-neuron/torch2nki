@@ -1,148 +1,31 @@
-Generate a custom kernel for a using AWS Neural Kernel Interface (NKI). The kernel should:
+Generate a custom kernel for vector addition a using AWS Neural Kernel Interface (NKI). The kernel should:
 - Use the proper NKI API integration.
 - Follow best practices for compilation.
 - Be well-structured, modular, and maintainable.
 - Only write the kernel. Nothing else.
 - Once again. ONLY write the kernel. Nothing else.
 
-Here is an implementation of the dot product function:
-def dot_product(a, b):
-    if len(a) != len(b):
+Here is a python implementation for it:
+
+def vector_add(v1, v2):
+    """
+    Adds two vectors element-wise using an explicit loop.
+    :param v1: List of numbers (first vector)
+    :param v2: List of numbers (second vector)
+    :return: List representing the sum of the two vectors
+    """
+    if len(v1) != len(v2):
         raise ValueError("Vectors must be of the same length")
     
-    result = 0
-    for i in range(len(a)):
-        result += a[i] * b[i]
+    result = []
+    for i in range(len(v1)):
+        result.append(v1[i] + v2[i])
     
     return result
 
+Don't use libnrt.so.1
 
-This implementation:
-
-```python
-from neuronxcc import nki
-import neuronxcc.nki.language as nl
-
-@nki.jit
-def nki_dot_product(a_tensor, b_tensor):
-    if a_tensor.shape[1] != b_tensor.shape[1]:
-        raise ValueError("Vectors must be of the same length")
-        
-    output = nl.zeros((a_tensor.shape[0], 1), dtype=a_tensor.dtype, buffer=nl.shared_hbm)
-
-    for i in nl.affine_range(a_tensor.shape[0]):
-        a_row = nl.load(a_tensor[i, :])
-        b_row = nl.load(b_tensor[i, :])
-        product = nl.multiply(a_row, b_row)
-        output[i, 0] = nl.sum(product)
-
-    return output
-
-
-
-Recieved the following error:
-    if a_tensor.shape[1] != b_tensor.shape[1]:
-    IndexError: tuple index out of range
-
-This is because the input tensor looks like this: torch.rand((128,))
-And so, it errors because torch.rand((128,)) is a 1D tensor with shape (128,), meaning it has only one dimension. Accessing shape[1] results in an IndexError because there is no second dimension.
-As such, accessing a_tensor_shape[1] will always error! So, do not do this!
-
-
-```python
-from neuronxcc import nki
-import neuronxcc.nki.language as nl
-
-@nki.jit
-def nki_dot_product(a_tensor, b_tensor):
-    # Ensure both tensors are 1D
-    if a_tensor.shape[0] != b_tensor.shape[0]:
-        raise ValueError("Vectors must be of the same length")
-        
-    output = nl.zeros((1,), dtype=a_tensor.dtype, buffer=nl.shared_hbm)
-
-    # Process the dot product
-    product = nl.zeros((128,), dtype=a_tensor.dtype, buffer=nl.shared_hbm)
-    for i in nl.affine_range(a_tensor.shape[0]):
-        a_value = nl.load(a_tensor[i])
-        b_value = nl.load(b_tensor[i])
-        product[i] = nl.multiply(a_value, b_value)
-
-    # Sum the products
-    output[0] = nl.sum(product)
-
-    return output
-```
-
-Recieved the following error:
-output[0] = nl.sum(product)
-TypeError: calling function 'sum' with unsupported arguments on nki tensor: missing a required argument: 'axis'; supported signature is 'sum(x, axis, *, dtype=None, mask=None, keepdims=False, **kwargs)'.
-
-This is because you must have an axis arguement when using the sum function on a nki tensor. So, ensure you have an axis argument when using the sum function!
-
-
-This kernel:
-
-```python
-from neuronxcc import nki
-import neuronxcc.nki.language as nl
-
-@nki.jit
-def nki_dot_product(a_tensor, b_tensor):
-    # Ensure both tensors are 1D
-    if a_tensor.shape[0] != b_tensor.shape[0]:
-        raise ValueError("Vectors must be of the same length")
-        
-    output = nl.zeros((1,), dtype=a_tensor.dtype, buffer=nl.shared_hbm)
-
-    # Initialize a temporary product tensor
-    product = nl.zeros((128,), dtype=a_tensor.dtype, buffer=nl.shared_hbm)
-    
-    # Process the dot product
-    for i in nl.affine_range(a_tensor.shape[0]):
-        a_value = nl.load(a_tensor[i])
-        b_value = nl.load(b_tensor[i])
-        product[i] = nl.multiply(a_value, b_value)
-
-    # Sum the products along the first axis
-    output[0] = nl.sum(product, axis=0)
-
-    return output
-```
-
-Recieved the error: 
-    output[0] = nl.sum(product, axis=0)
-    TypeError: Expected operand 'x' of 'sum' to be in address space 'psum|sbuf', but got a tile in 'hbm' instead.
-
-Which suggests that the tensor you are passing to nl.sum() resides in HBM (High Bandwidth Memory), but nl.sum() expects it to be in either psum (partial sum) or sbuf (shared buffer) memory space. To fix, either compute the sum in a loop instead of calling sum.
-
-
-Instead of initializing a 1D tensor ((1,)) in nl.psum use a scalar: sum_result = nl.zeros((), dtype=nl.float32, buffer=nl.psum)  # Use a valid dtype
-
-Do NOT use a_tensor.dtype as the dtype of the tensor you initialize in nl.psum!
-
-
-
-
-
-
-### Example: Basic Elementwise Addition Kernel
-
-from neuronxcc import nki
-import neuronxcc.nki.language as nl
-
-@nki.jit
-def nki_tensor_tensor_add(a_tensor, b_tensor):
-  c_tensor = nl.ndarray(a_tensor.shape, dtype=a_tensor.dtype, buffer=nl.shared_hbm)
-
-  a = nl.load(a_tensor)
-  b = nl.load(b_tensor)
-
-  c = a + b
-
-  nl.store(c_tensor, c)
-
-  return c_tensor
+Make sure to return the output
 
 ### The following is NKI documentation you may find useful:
 Supported Data Types

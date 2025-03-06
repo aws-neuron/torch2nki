@@ -1,3 +1,7 @@
+#A basic script to ensure that the kernels run successfully
+
+
+
 import neuronxcc.nki as nki
 import neuronxcc.nki.language as nl
 import numpy as np

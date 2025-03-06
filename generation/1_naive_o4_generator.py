@@ -29,14 +29,28 @@ def get_chat_completion(system_prompt, user_prompt, model = "gpt-4o-mini", tempe
     #Return the content generated
     return completion.choices[0].message.content
 
+def run_o4(system_prompt_adress, user_prompt_adress, output_adress):
+    """
+    Runs the OpenAI API to generate a completion from a system prompt and a user prompt.
+    
+    Args:
+        system_prompt_adress (str): The address of the system prompt.
+        user_prompt_adress (str): The address of the user prompt.
+        output_adress (str): The address of the output.
+    """
+    #Access system and user prompts from text files in the prompts folder
+    with open(system_prompt_adress, "r") as f:
+        system_prompt = f.read()
+    with open(user_prompt_adress, "r") as f:
+        user_prompt = f.read()
+    #Get the completion
+    result = get_chat_completion(system_prompt, user_prompt)
+    #Save the completion as a txt file
+    with open(output_adress, "w") as f:
+        f.write(result)
+
 
 if __name__ == "__main__":
-    #Access system and user prompts from text files in the prompts folder
-    with open("../prompts/system_prompt_naive.txt", "r") as f:
-        system_prompt = f.read()
-    with open("../prompts/user_prompt_add.txt", "r") as f:
-        user_prompt = f.read()
-    result = get_chat_completion(system_prompt, user_prompt)
-    #save result as a txt file
-    with open("../generation/samples/vector_add.txt", "w") as f:
-        f.write(result)
+
+    #Run the o4 generator
+    run_o4("../prompts/system_prompt_naive.txt", "../prompts/user_prompt_add.txt", "../generation/samples/vector_add.txt")

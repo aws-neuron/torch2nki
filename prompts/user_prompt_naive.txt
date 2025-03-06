@@ -121,9 +121,67 @@ Instead of initializing a 1D tensor ((1,)) in nl.psum use a scalar: sum_result =
 
 Do NOT use a_tensor.dtype as the dtype of the tensor you initialize in nl.psum!
 
+```python
+import neuronxcc.nki.language as nl
+from neuronxcc import nki
+
+@nki.jit
+def vector_add_kernel(v1, v2):
+    # Ensure the vectors are of the same size
+    size = v1.shape[0]
+    result = nl.zeros(size, dtype=v1.dtype)
+
+    # Perform element-wise addition
+    for i in nl.arange(size):
+        a = nl.load(v1[i:i+1])
+        b = nl.load(v2[i:i+1])
+        c = nl.add(a, b)
+        nl.store(result[i:i+1], c)
+
+    return result
+```
+
+The "IndexError: tuple index out of range" suggests that v1.shape or v2.shape might not be properly defined in the JIT-compiled kernel. The likely issue is that v1.shape[0] is being accessed incorrectly.
 
 
 
+```python
+import neuronxcc.nki.language as nl
+from neuronxcc import nki
+
+@nki.jit
+def vector_add_kernel(v1, v2):
+    size = v1.shape[0]
+
+    # Create an output tensor of the same size
+    result = nl.zeros((size,), dtype=v1.dtype)
+
+    # Define the range for the loop
+    for i in nl.arange(size):
+        # Load the elements from the input tensors
+        a = nl.load(v1[i:i+1])
+        b = nl.load(v2[i:i+1])
+        
+        # Perform element-wise addition
+        c = nl.add(a, b)
+
+        # Store the result back into the output tensor
+        nl.store(result[i:i+1], c)
+
+    return result
+```
+
+
+The error "AssertionError: Insufficient rank!" suggests that size is being used incorrectly in nl.zeros((size,), dtype=v1.dtype).
+
+Possible Issues
+v1.shape[0] might not be accessible
+
+Since v1 is an NKI tensor, accessing its shape as v1.shape[0] might not work.
+Instead, use nl.shape(v1, 0), which is the correct way in NeuronX NKI.
+size might not be an integer
+
+Ensure size is explicitly cast as nl.as_tensor(size, dtype=nl.int32), if needed.
 
 
 ### Example: Basic Elementwise Addition Kernel

@@ -43,7 +43,7 @@ def find_function_name_in_code(kernel_code):
 
 def main():
     # Extract the kernel code from the LLM-generated file
-    file_path = "../../generation/samples/vector_add.txt"  # TODO: change to correct file path or make file path an arg
+    file_path = "../../generation/samples/vector_add_kernel.txt"  # TODO: change to correct file path or make file path an arg
     
     # Extract the actual code from the LLM output
     kernel_code = extract_kernel_from_llm_response(file_path)

@@ -10,7 +10,7 @@ import neuronxcc.nki.language as nl
 import neuronxcc.nki.typing as nt
 import numpy as np
 
-from matrixops_nki_kernels import (
+from multielement_nki_kernels import (
     nki_softmax, nki_log_softmax, nki_max, nki_min, nki_sum, nki_mean,
     nki_var, nki_std, nki_norm,
     nki_cumsum, nki_cumprod, nki_prod, nki_round, nki_floor, nki_ceil,

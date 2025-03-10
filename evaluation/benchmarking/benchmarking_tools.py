@@ -7,9 +7,28 @@ import torch
 import numpy as np
 
 
-def extract_kernel_from_llm_response(file_path):
-    #TODO: Deal with edge cases defined by Emily
+def update_function_name_in_text(text: str, new_name: str) -> str:
+    """
+    Updates the function name in the function header of a text.
+    
+    The function expects the function header to follow this format:
+    --old_function_name(arguments):
+        <body lines>
+    
+    It replaces old_function_name with new_name, preserving the arguments and the colon.
+    """
+    # This regex captures the function name and the rest of the header:
+    #   - Group 1: the old function name (one or more characters until an opening parenthesis)
+    #   - Group 2: the arguments and trailing colon (e.g., "(arg1, arg2):")
+    pattern = r'^--([^(]+)(\([^)]*\):)'
+    # Create a replacement string that puts the new function name and reuses the captured arguments and colon.
+    replacement = f'--{new_name}\\2'
+    # Replace only the first occurrence (in case there are multiple lines that might match)
+    new_text = re.sub(pattern, replacement, text, count=1, flags=re.MULTILINE)
+    return new_text
 
+
+def extract_kernel_from_llm_response(file_path):
     """
     Reads the LLM-generated file, locates the Python code block
     (enclosed by triple backticks), and extracts only the code inside.

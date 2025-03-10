@@ -65,12 +65,23 @@ def main():
 
 
     #Run the benchmark tests
-    edgeops_tests.main()
-    elementwise_tests.main()
-    multi_element_tests.main()
-    products_tests.main()
-    matrixops_tests.main()
-    mlops_tests.main()
+    edge_ops_dict = edgeops_tests.main()
+    elementwise_ops_dict = elementwise_tests.main()
+    multi_element_ops_dict = multi_element_tests.main()
+    products_ops_dict = products_tests.main()
+    matrixops_ops_dict = matrixops_tests.main()
+    mlops_ops_dict = mlops_tests.main()
+
+    #Save the results
+    with open("results.json", "w") as f:
+        json.dump({
+            "edgeops": edge_ops_dict,
+            "elementwise": elementwise_ops_dict,
+            "multi_element": multi_element_ops_dict,
+            "products": products_ops_dict,
+            "matrixops": matrixops_ops_dict,
+            "mlops": mlops_ops_dict
+        }, f, indent=4)
 
 if __name__ == "__main__":
     main()

@@ -524,25 +524,50 @@ if __name__ == "__main__":
     main()
 
 def main():
-    test_torch_addition(device)
-    test_torch_subtraction(device)
-    test_torch_multiplication(device)
-    test_torch_division(device)
-    test_torch_abs(device)
-    test_torch_exp(device)
-    test_torch_log(device)
-    test_torch_sqrt(device)
-    test_torch_rsqrt(device)
-    test_torch_pow(device)
-    test_torch_sin(device)
-    test_torch_cos(device)
-    test_torch_tan(device)
-    test_torch_asin(device)
-    test_torch_acos(device)
-    test_torch_atan(device)
-    test_torch_sinh(device)
-    test_torch_cosh(device)
-    test_torch_tanh(device)
-    test_torch_sigmoid(device)
-    test_torch_relu(device)
-    test_torch_threshold(device)
+    device = xm.xla_device()
+    
+    # Dictionary to store test results
+    test_results = {}
+    
+    # Run all tests and store results
+    test_results['addition'] = test_torch_addition(device)
+    test_results['subtraction'] = test_torch_subtraction(device)
+    test_results['multiplication'] = test_torch_multiplication(device)
+    test_results['division'] = test_torch_division(device)
+    test_results['abs'] = test_torch_abs(device)
+    test_results['exp'] = test_torch_exp(device)
+    test_results['log'] = test_torch_log(device)
+    test_results['sqrt'] = test_torch_sqrt(device)
+    test_results['rsqrt'] = test_torch_rsqrt(device)
+    test_results['pow'] = test_torch_pow(device)
+    test_results['sin'] = test_torch_sin(device)
+    test_results['cos'] = test_torch_cos(device)
+    test_results['tan'] = test_torch_tan(device)
+    test_results['asin'] = test_torch_asin(device)
+    test_results['acos'] = test_torch_acos(device)
+    test_results['atan'] = test_torch_atan(device)
+    test_results['sinh'] = test_torch_sinh(device)
+    test_results['cosh'] = test_torch_cosh(device)
+    test_results['tanh'] = test_torch_tanh(device)
+    test_results['sigmoid'] = test_torch_sigmoid(device)
+    test_results['relu'] = test_torch_relu(device)
+    test_results['threshold'] = test_torch_threshold(device)
+    
+    # Print summary of results
+    print("\nTest Results Summary:")
+    print("-" * 40)
+    total_tests = len(test_results)
+    passed_tests = sum(test_results.values())
+    print(f"Total Tests: {total_tests}")
+    print(f"Passed Tests: {passed_tests}")
+    print(f"Failed Tests: {total_tests - passed_tests}")
+    print(f"Success Rate: {(passed_tests/total_tests)*100:.2f}%")
+    
+    # Print failed tests if any
+    failed_tests = [test for test, result in test_results.items() if result == 0]
+    if failed_tests:
+        print("\nFailed Tests:")
+        for test in failed_tests:
+            print(f"- {test}")
+    
+    return test_results

@@ -344,24 +344,48 @@ def test_torch_linalg_triangular_solve(device):
 
 def main():
     device = xm.xla_device()
-    test_torch_linalg_qr(device)
-    test_torch_linalg_svd(device)
-    test_torch_linalg_inv(device)
-    test_torch_linalg_pinv(device)
-    test_torch_linalg_matrix_norm(device)
-    test_torch_linalg_vector_norm(device)
-    test_torch_linalg_cross(device)
-    test_torch_linalg_outer(device)
-    test_torch_linalg_tensordot(device)
-    test_torch_linalg_eigh(device)
-    test_torch_linalg_eig(device)
-    test_torch_linalg_slogdet(device)
-    test_torch_linalg_solve(device)
-    test_torch_linalg_lstsq(device)
-    test_torch_linalg_cholesky(device)
-    test_torch_linalg_lu(device)
-    test_torch_linalg_ldl_factor(device)
-    test_torch_linalg_triangular_solve(device)
+    
+    # Dictionary to store test results
+    test_results = {}
+    
+    # Run all tests and store results
+    test_results['qr'] = test_torch_linalg_qr(device)
+    test_results['svd'] = test_torch_linalg_svd(device)
+    test_results['inv'] = test_torch_linalg_inv(device)
+    test_results['pinv'] = test_torch_linalg_pinv(device)
+    test_results['matrix_norm'] = test_torch_linalg_matrix_norm(device)
+    test_results['vector_norm'] = test_torch_linalg_vector_norm(device)
+    test_results['cross'] = test_torch_linalg_cross(device)
+    test_results['outer'] = test_torch_linalg_outer(device)
+    test_results['tensordot'] = test_torch_linalg_tensordot(device)
+    test_results['eigh'] = test_torch_linalg_eigh(device)
+    test_results['eig'] = test_torch_linalg_eig(device)
+    test_results['slogdet'] = test_torch_linalg_slogdet(device)
+    test_results['solve'] = test_torch_linalg_solve(device)
+    test_results['lstsq'] = test_torch_linalg_lstsq(device)
+    test_results['cholesky'] = test_torch_linalg_cholesky(device)
+    test_results['lu'] = test_torch_linalg_lu(device)
+    test_results['ldl_factor'] = test_torch_linalg_ldl_factor(device)
+    test_results['triangular_solve'] = test_torch_linalg_triangular_solve(device)
+    
+    # Print summary of results
+    print("\nTest Results Summary:")
+    print("-" * 40)
+    total_tests = len(test_results)
+    passed_tests = sum(test_results.values())
+    print(f"Total Tests: {total_tests}")
+    print(f"Passed Tests: {passed_tests}")
+    print(f"Failed Tests: {total_tests - passed_tests}")
+    print(f"Success Rate: {(passed_tests/total_tests)*100:.2f}%")
+    
+    # Print failed tests if any
+    failed_tests = [test for test, result in test_results.items() if result == 0]
+    if failed_tests:
+        print("\nFailed Tests:")
+        for test in failed_tests:
+            print(f"- {test}")
+    
+    return test_results
 
 if __name__ == "__main__":
     main()

@@ -370,38 +370,62 @@ def test_torch_avg_pool2d(device):
 
 def main():
     device = xm.xla_device()
-    test_torch_gelu(device)
-    test_torch_elu(device)
-    test_torch_selu(device)
-    test_torch_leaky_relu(device)
-    test_torch_hardswish(device)
-    test_torch_mse_loss(device)
-    test_torch_l1_loss(device)
-    test_torch_cross_entropy(device)
-    test_torch_nll_loss(device)
-    test_torch_binary_cross_entropy(device)
-    test_torch_hinge_embedding_loss(device)
-    test_torch_kl_div(device)
-    test_torch_smooth_l1_loss(device)
-    test_torch_cosine_embedding_loss(device)
-    test_torch_triplet_margin_loss(device)
-    test_torch_batch_norm(device)
-    test_torch_layer_norm(device)
-    test_torch_group_norm(device)
-    test_torch_instance_norm(device)
-    test_torch_dropout(device)
-    test_torch_alpha_dropout(device)
-    test_torch_feature_alpha_dropout(device)
-    test_torch_softshrink(device)
-    test_torch_euclidean_dist(device)
-    test_torch_cosine_similarity(device)
-    test_torch_pairwise_distance(device)
-    test_torch_conv1d(device)
-    test_torch_conv2d(device)
-    test_torch_conv3d(device)
-    test_torch_conv_transpose2d(device)
-    test_torch_max_pool2d(device)
-    test_torch_avg_pool2d(device)
+    
+    # Dictionary to store test results
+    test_results = {}
+    
+    # Run all tests and store results
+    test_results['gelu'] = test_torch_gelu(device)
+    test_results['elu'] = test_torch_elu(device)
+    test_results['selu'] = test_torch_selu(device)
+    test_results['leaky_relu'] = test_torch_leaky_relu(device)
+    test_results['hardswish'] = test_torch_hardswish(device)
+    test_results['mse_loss'] = test_torch_mse_loss(device)
+    test_results['l1_loss'] = test_torch_l1_loss(device)
+    test_results['cross_entropy'] = test_torch_cross_entropy(device)
+    test_results['nll_loss'] = test_torch_nll_loss(device)
+    test_results['binary_cross_entropy'] = test_torch_binary_cross_entropy(device)
+    test_results['hinge_embedding_loss'] = test_torch_hinge_embedding_loss(device)
+    test_results['kl_div'] = test_torch_kl_div(device)
+    test_results['smooth_l1_loss'] = test_torch_smooth_l1_loss(device)
+    test_results['cosine_embedding_loss'] = test_torch_cosine_embedding_loss(device)
+    test_results['triplet_margin_loss'] = test_torch_triplet_margin_loss(device)
+    test_results['batch_norm'] = test_torch_batch_norm(device)
+    test_results['layer_norm'] = test_torch_layer_norm(device)
+    test_results['group_norm'] = test_torch_group_norm(device)
+    test_results['instance_norm'] = test_torch_instance_norm(device)
+    test_results['dropout'] = test_torch_dropout(device)
+    test_results['alpha_dropout'] = test_torch_alpha_dropout(device)
+    test_results['feature_alpha_dropout'] = test_torch_feature_alpha_dropout(device)
+    test_results['softshrink'] = test_torch_softshrink(device)
+    test_results['euclidean_dist'] = test_torch_euclidean_dist(device)
+    test_results['cosine_similarity'] = test_torch_cosine_similarity(device)
+    test_results['pairwise_distance'] = test_torch_pairwise_distance(device)
+    test_results['conv1d'] = test_torch_conv1d(device)
+    test_results['conv2d'] = test_torch_conv2d(device)
+    test_results['conv3d'] = test_torch_conv3d(device)
+    test_results['conv_transpose2d'] = test_torch_conv_transpose2d(device)
+    test_results['max_pool2d'] = test_torch_max_pool2d(device)
+    test_results['avg_pool2d'] = test_torch_avg_pool2d(device)
+    
+    # Print summary of results
+    print("\nTest Results Summary:")
+    print("-" * 40)
+    total_tests = len(test_results)
+    passed_tests = sum(test_results.values())
+    print(f"Total Tests: {total_tests}")
+    print(f"Passed Tests: {passed_tests}")
+    print(f"Failed Tests: {total_tests - passed_tests}")
+    print(f"Success Rate: {(passed_tests/total_tests)*100:.2f}%")
+    
+    # Print failed tests if any
+    failed_tests = [test for test, result in test_results.items() if result == 0]
+    if failed_tests:
+        print("\nFailed Tests:")
+        for test in failed_tests:
+            print(f"- {test}")
+    
+    return test_results
 
 if __name__ == "__main__":
     main()

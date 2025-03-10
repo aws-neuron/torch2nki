@@ -258,27 +258,51 @@ def test_torch_hamming_distance(device):
 
 def main():
     device = xm.xla_device()
-    test_torch_special_entr(device)
-    test_torch_special_i1(device)
-    test_torch_special_xlogy(device)
-    test_torch_special_logit(device)
-    test_torch_angle(device)
-    test_torch_polar(device)
-    test_torch_view_as_real(device)
-    test_torch_view_as_complex(device)
-    test_torch_copysign(device)
-    test_torch_nextafter(device)
-    test_torch_hypot(device)
-    test_torch_log1p(device)
-    test_torch_expm1(device)
-    test_torch_frexp(device)
-    test_torch_ldexp(device)
-    test_torch_logaddexp(device)
-    test_torch_logaddexp2(device)
-    test_torch_sinc(device)
-    test_torch_xlogy(device)
-    test_torch_edit_distance(device)
-    test_torch_hamming_distance(device)
+    
+    # Dictionary to store test results
+    test_results = {}
+    
+    # Run all tests and store results
+    test_results['special_entr'] = test_torch_special_entr(device)
+    test_results['special_i1'] = test_torch_special_i1(device)
+    test_results['special_xlogy'] = test_torch_special_xlogy(device)
+    test_results['special_logit'] = test_torch_special_logit(device)
+    test_results['angle'] = test_torch_angle(device)
+    test_results['polar'] = test_torch_polar(device)
+    test_results['view_as_real'] = test_torch_view_as_real(device)
+    test_results['view_as_complex'] = test_torch_view_as_complex(device)
+    test_results['copysign'] = test_torch_copysign(device)
+    test_results['nextafter'] = test_torch_nextafter(device)
+    test_results['hypot'] = test_torch_hypot(device)
+    test_results['log1p'] = test_torch_log1p(device)
+    test_results['expm1'] = test_torch_expm1(device)
+    test_results['frexp'] = test_torch_frexp(device)
+    test_results['ldexp'] = test_torch_ldexp(device)
+    test_results['logaddexp'] = test_torch_logaddexp(device)
+    test_results['logaddexp2'] = test_torch_logaddexp2(device)
+    test_results['sinc'] = test_torch_sinc(device)
+    test_results['xlogy'] = test_torch_xlogy(device)
+    test_results['edit_distance'] = test_torch_edit_distance(device)
+    test_results['hamming_distance'] = test_torch_hamming_distance(device)
+    
+    # Print summary of results
+    print("\nTest Results Summary:")
+    print("-" * 40)
+    total_tests = len(test_results)
+    passed_tests = sum(test_results.values())
+    print(f"Total Tests: {total_tests}")
+    print(f"Passed Tests: {passed_tests}")
+    print(f"Failed Tests: {total_tests - passed_tests}")
+    print(f"Success Rate: {(passed_tests/total_tests)*100:.2f}%")
+    
+    # Print failed tests if any
+    failed_tests = [test for test, result in test_results.items() if result == 0]
+    if failed_tests:
+        print("\nFailed Tests:")
+        for test in failed_tests:
+            print(f"- {test}")
+    
+    return test_results
 
 if __name__ == "__main__":
     main()

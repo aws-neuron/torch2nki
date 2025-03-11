@@ -3,8 +3,6 @@ A set of tools for processing LLM outputs for kernels.
 """
 
 import re
-import torch
-import numpy as np
 
 
 def process(kernel_list, kernel_name_type):
@@ -93,4 +91,11 @@ def extract_kernel_from_llm_response(file_path):
         raise ValueError("Could not find a fenced code block containing the kernel definition.")
     
     return match.group(1).strip()
+
+
+def main():
+    print(update_function_name_in_text("def add_numbers(a, b):\n    return a + b", "nki_add"))
+
+if __name__ == "__main__":
+    main()
 

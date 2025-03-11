@@ -1,5 +1,17 @@
+import os
+import sys
+import json
+
+# Add parent directory to path for imports
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import benchmarking_tools
-import edgeops_tests, elementwise_tests, multi_element_tests, products_tests, matrixops_tests, mlops_tests
+from edgeops import edgeops_tests
+from elementwise import elementwise_tests
+from multielement import multielement_tests
+from products import products_tests
+from matrixops import matrixops_tests
+from mlops import mlops_tests
 
 
 def main():
@@ -67,7 +79,7 @@ def main():
     #Run the benchmark tests
     edge_ops_dict = edgeops_tests.main()
     elementwise_ops_dict = elementwise_tests.main()
-    multi_element_ops_dict = multi_element_tests.main()
+    multi_element_ops_dict = multielement_tests.main()
     products_ops_dict = products_tests.main()
     matrixops_ops_dict = matrixops_tests.main()
     mlops_ops_dict = mlops_tests.main()

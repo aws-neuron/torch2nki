@@ -25,10 +25,6 @@ def process(kernel_list, kernel_name_type):
         kernel_text = update_function_name_in_text(kernel_text, kernel_name)
         write_txt_file(f'{kernel_name_type}.py', kernel_text)
 
-
-
-
-
 def make_txt_file(file_path, content):
     """
     Creates a text file with the given content.
@@ -98,21 +94,3 @@ def extract_kernel_from_llm_response(file_path):
     
     return match.group(1).strip()
 
-def find_function_name_in_code(kernel_code):
-    """
-    Attempts to find the first function name in the provided code string.
-    Returns the extracted name (e.g., 'nki_matrix_multiply'), or None if none found.
-    
-    This simple approach matches the pattern:
-        def some_function_name(
-    and captures 'some_function_name'.
-    
-    If there are multiple function definitions, only the first match is returned.
-    """
-    pattern = re.compile(r"def\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(", re.MULTILINE)
-    match = pattern.search(kernel_code)
-    if match:
-        return match.group(1)
-    return None 
-
-#TODO: Function to batch run commands

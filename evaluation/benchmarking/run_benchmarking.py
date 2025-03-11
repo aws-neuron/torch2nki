@@ -13,7 +13,6 @@ from products import products_tests
 from matrixops import matrixops_tests
 from mlops import mlops_tests
 
-
 def main():
 #Elementwise operators
     elementwise_operators = [
@@ -83,7 +82,7 @@ def main():
     products_ops_dict = products_tests.main()
     matrixops_ops_dict = matrixops_tests.main()
     mlops_ops_dict = mlops_tests.main()
-
+    
     #Save the results
     with open("results.json", "w") as f:
         json.dump({

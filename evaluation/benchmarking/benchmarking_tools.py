@@ -17,11 +17,21 @@ def process(kernel_list, kernel_name_type):
         kernel_list (list): List of kernel names to process
         kernel_name_type (str): Type of kernel being tested
     """
-    make_txt_file(f'{kernel_name_time}.txt', '')
+    # Create or clear the output file
+    output_file = f'{kernel_name_type}.py'
+    make_txt_file(output_file, '')
+    
+    # Add imports at the top of the file
+    append_txt_file(output_file, 'import torch\nimport torch.nn.functional as F\n\n')
+    
     for kernel_name in kernel_list:
-        kernel_text = extract_kernel_from_llm_response(f'{kernel_name}.txt')
-        kernel_text = update_function_name_in_text(kernel_text, kernel_name)
-        write_txt_file(f'{kernel_name_type}.py', kernel_text)
+        try:
+            kernel_text = extract_kernel_from_llm_response(f'{kernel_name}.txt')
+            kernel_text = update_function_name_in_text(kernel_text, f'nki_{kernel_name}')
+            # Append each kernel to the file
+            append_txt_file(output_file, kernel_text + '\n\n')
+        except Exception as e:
+            print(f"Error processing kernel {kernel_name}: {str(e)}")
 
 def make_txt_file(file_path, content):
     """
@@ -36,7 +46,7 @@ def make_txt_file(file_path, content):
 
 def write_txt_file(file_path, content):
     """
-    Writes the given content to a text file.
+    Writes the given content to a text file, overwriting any existing content.
 
     Args:
         file_path (str): Path to the file to write.
@@ -45,31 +55,38 @@ def write_txt_file(file_path, content):
     with open(file_path, "w", encoding="utf-8") as f:
         f.write(content)
 
+def append_txt_file(file_path, content):
+    """
+    Appends the given content to a text file.
+
+    Args:
+        file_path (str): Path to the file to append to.
+        content (str): Content to append to the file.
+    """
+    with open(file_path, "a", encoding="utf-8") as f:
+        f.write(content)
+
 
 def update_function_name_in_text(text, new_name):
     """
     Updates the function name in the function header of a text string.
-    
+
     The function expects the function header to follow this format:
-    --old_function_name(arguments):
+    def old_function_name(arguments):
         <body lines>
-    
+
     Args:
         text (str): The text content to update
         new_name (str): New function name to replace the old one with
-    
+
     Returns:
         str: The updated text content with the new function name
     """
-    # This regex captures the function name and the rest of the header:
-    #   - Group 1: the old function name (one or more characters until an opening parenthesis)
-    #   - Group 2: the arguments and trailing colon (e.g., "(arg1, arg2):")
-    pattern = r'^--([^(]+)(\([^)]*\):)'
-    
-    # Create a replacement string that puts the new function name and reuses the captured arguments and colon
-    replacement = f'--{new_name}\\2'
-    
-    # Replace only the first occurrence (in case there are multiple lines that might match)
+    # Updated regex to capture standard Python function definitions
+    pattern = r'^(def\s+)([^\s(]+)(\s*\(.*\):)'  # Matches 'def function_name(args):'
+    # Replace with new function name while preserving 'def' and arguments
+    replacement = r'\1' + new_name + r'\3'
+    # Replace the first occurrence of the function definition
     new_text = re.sub(pattern, replacement, text, count=1, flags=re.MULTILINE)
     
     return new_text
@@ -92,10 +109,4 @@ def extract_kernel_from_llm_response(file_path):
     
     return match.group(1).strip()
 
-
-def main():
-    print(update_function_name_in_text("def add_numbers(a, b):\n    return a + b", "nki_add"))
-
-if __name__ == "__main__":
-    main()
-
+    

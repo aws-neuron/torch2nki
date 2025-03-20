@@ -1,0 +1,17 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model BenchmarkResult {
+  id            Int      @id @default(autoincrement())
+  operator      String
+  kernel        String
+  testCases     Int
+  errorMessage  String?
+  createdAt     DateTime @default(now())
+}

@@ -1,0 +1,10 @@
+nki.language.program_ndim
+
+Signature:
+nki.language.program_ndim()
+
+Description:
+Number of dimensions in the SPMD launch grid.
+
+Returns:
+The number of dimensions in the launch grid, i.e. the number of axes

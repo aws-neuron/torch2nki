@@ -1,0 +1,7 @@
+nki.language.hbm
+
+Signature:
+nki.language.hbm = Ellipsis
+
+Description:
+HBM - Alias of private_hbm

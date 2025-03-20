@@ -1,0 +1,16 @@
+nki.language.gelu
+
+Signature:
+nki.language.gelu(x, *, dtype=None, mask=None, **kwargs)
+
+Description:
+Gaussian Error Linear Unit activation function on the input, element-wise.
+((Similar to torch.nn.functional.gelu))
+
+Parameters:
+x – a tile.
+dtype – (optional) data type to cast the output type to (see Supported Data Types for more information); if not specified, it will default to be the same as the data type of the input tile.
+mask – (optional) a compile-time constant predicate that controls whether/how this instruction is executed (see NKI API Masking for details)
+
+Returns:
+a tile that has gelu of x.

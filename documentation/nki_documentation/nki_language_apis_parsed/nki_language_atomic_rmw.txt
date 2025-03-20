@@ -1,0 +1,37 @@
+nki.language.atomic_rmw
+
+Signature:
+nki.language.atomic_rmw(dst, value, op, *, mask=None, **kwargs)
+
+Description:
+Perform an atomic read-modify-write operation on HBM data dst = op(dst, value)
+
+Parameters:
+dst – HBM tensor with subscripts, only supports indirect dynamic indexing currently.
+value – tile or scalar value that is the operand to op.
+op – atomic operation to perform, only supports np.add currently.
+mask – (optional) a compile-time constant predicate that controls whether/how this instruction is executed (see NKI API Masking for details)
+
+Returns:
+none
+
+Example:
+import neuronxcc.nki.language as nl
+from neuronxcc.nki.typing import tensor
+...
+
+value: tensor[N, M] = nl.load(value_tensor)
+
+# dynamic indices have to be in SBUF, with shape [N, 1]
+indices_tile: tensor[N, 1] = nl.load(indices_tensor)
+
+ix = nl.arange(M)[None, :]
+
+########################################################################
+# Atomic read-modify-write example:
+#   - read: values of rmw_tensor is indexed by values from indices_tile
+#   - modify: incremented by value
+#   - write: saved back into rmw_tensor
+# resulting in rmw_tensor = rmw_tensor + value
+########################################################################
+nl.atomic_rmw(rmw_tensor[indices_tile, ix], value=value, op=np.add)

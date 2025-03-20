@@ -1,0 +1,14 @@
+nki.language.random_seed
+
+Signature:
+nki.language.random_seed(seed, *, mask=None, **kwargs)
+
+Description:
+Sets a seed, specified by user, to the random number generator on HW. Using the same seed will generate the same sequence of random numbers when using together with the random() API
+
+Parameters:
+seed – a scalar value to use as the seed.
+mask – (optional) a compile-time constant predicate that controls whether/how this instruction is executed (see NKI API Masking for details)
+
+Returns:
+none

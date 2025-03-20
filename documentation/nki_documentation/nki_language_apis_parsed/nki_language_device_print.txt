@@ -1,0 +1,15 @@
+nki.language.device_print
+
+Signature:
+nki.language.device_print(prefix, x, *, mask=None, **kwargs)
+
+Description:
+Print a message with a String prefix followed by the value of a tile x. Printing is currently only supported in kernel simulation mode (see nki.simulate_kernel for a code example).
+
+Parameters:
+prefix – prefix of the print message
+x – data to print out
+mask – (optional) a compile-time constant predicate that controls whether/how this instruction is executed (see NKI API Masking for details)
+
+Returns:
+None

@@ -1,0 +1,18 @@
+nki.language.softmax
+
+Signature:
+nki.language.softmax(x, axis, *, dtype=None, compute_dtype=None, mask=None, **kwargs)
+
+Description:
+Softmax activation function on the input, element-wise.
+((Similar to torch.nn.functional.softmax))
+
+Parameters:
+x – a tile.
+axis – int or tuple/list of ints. The axis (or axes) along which to operate; must be free dimensions, not partition dimension (0); can only be the last contiguous dim(s) of the tile: [1], [1,2], [1,2,3], [1,2,3,4]
+dtype – (optional) data type to cast the output type to (see Supported Data Types for more information); if not specified, it will default to be the same as the data type of the input tile.
+compute_dtype – (optional) dtype for the internal computation - currently `dtype` and `compute_dtype` behave the same, both sets internal compute and return dtype.
+mask – (optional) a compile-time constant predicate that controls whether/how this instruction is executed (see NKI API Masking for details)
+
+Returns:
+a tile that has softmax of x.

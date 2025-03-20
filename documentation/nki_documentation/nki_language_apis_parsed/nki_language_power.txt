@@ -1,0 +1,17 @@
+nki.language.power
+
+Signature:
+nki.language.power(x, y, *, dtype=None, mask=None, **kwargs)
+
+Description:
+Elements of x raised to powers of y, element-wise.
+((Similar to numpy.power))
+
+Parameters:
+x – a tile or a scalar value.
+y – a tile or a scalar value. x.shape and y.shape must be broadcastable to a common shape, that will become the shape of the output.
+dtype – (optional) data type to cast the output type to (see Supported Data Types for more information); if not specified, it will default to be the same as the data type of the input tiles, or whichever input type has the highest precision (see NKI Type Promotion for more information);
+mask – (optional) a compile-time constant predicate that controls whether/how this instruction is executed (see NKI API Masking for details)
+
+Returns:
+a tile that has values x to the power of y.

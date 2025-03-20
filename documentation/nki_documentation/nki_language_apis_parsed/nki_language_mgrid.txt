@@ -1,0 +1,27 @@
+nki.language.mgrid
+
+Signature:
+nki.language.mgrid = Ellipsis
+
+Description:
+Same as NumPy mgrid: “An instance which returns a dense (or fleshed out) mesh-grid when indexed, so that each returned argument has the same shape. The dimensions and number of the output arrays are equal to the number of indexing dimensions.”
+Complex numbers are not supported in the step length.
+((Similar to numpy.mgrid))
+
+Example:
+import neuronxcc.nki.language as nl
+...
+
+
+i_p, i_f = nl.mgrid[0:128, 0:512]
+tile = nl.load(in_tensor[i_p, i_f])
+...
+nl.store(out_tensor[i_p, i_f], tile)
+import neuronxcc.nki.language as nl
+...
+
+
+grid = nl.mgrid[0:128, 0:512]
+tile = nl.load(in_tensor[grid.p, grid.x])
+...
+nl.store(out_tensor[grid.p, grid.x], tile)

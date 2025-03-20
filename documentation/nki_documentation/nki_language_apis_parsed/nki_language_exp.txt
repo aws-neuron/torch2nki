@@ -1,0 +1,17 @@
+nki.language.exp
+
+Signature:
+nki.language.exp(x, *, dtype=None, mask=None, **kwargs)
+
+Description:
+Exponential of the input, element-wise.
+((Similar to numpy.exp))
+The exp(x) is e^x where e is the Euler’s number = 2.718281…
+
+Parameters:
+x – a tile.
+dtype – (optional) data type to cast the output type to (see Supported Data Types for more information); if not specified, it will default to be the same as the data type of the input tile.
+mask – (optional) a compile-time constant predicate that controls whether/how this instruction is executed (see NKI API Masking for details)
+
+Returns:
+a tile that has exponential values of x.

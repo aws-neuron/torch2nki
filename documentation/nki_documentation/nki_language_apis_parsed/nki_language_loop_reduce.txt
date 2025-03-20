@@ -1,0 +1,34 @@
+nki.language.loop_reduce
+
+Signature:
+nki.language.loop_reduce(x, op, loop_indices, *, dtype=None, mask=None, **kwargs)
+
+Description:
+Apply reduce operation over a loop. This is an ideal instruction to compute a high performance reduce_max or reduce_min.
+
+Note: The destination tile is also the rhs input to op. For example,
+b = nl.zeros((N_TILE_SIZE, M_TILE_SIZE), dtype=float32, buffer=nl.sbuf)
+for k_i in affine_range(NUM_K_BLOCKS):
+
+  # Skipping over multiple nested loops here.
+  # a, is a psum tile from a matmul accumulation group.
+  b = nl.loop_reduce(a, op=np.add, loop_indices=[k_i], dtype=nl.float32)
+is the same as:
+b = nl.zeros((N_TILE_SIZE, M_TILE_SIZE), dtype=nl.float32, buffer=nl.sbuf)
+for k_i in affine_range(NUM_K_BLOCKS):
+
+  # Skipping over multiple nested loops here.
+  # a, is a psum tile from a matmul accumulation group.
+  b = nisa.tensor_tensor(data1=b, data2=a, op=np.add, dtype=nl.float32)
+If you are trying to use this instruction only for accumulating results on SBUF, consider simply using the += operator instead.
+The loop_indices list enables the compiler to recognize which loops this reduction can be optimized across as part of any aggressive loop-level optimizations it may perform.
+
+Parameters:
+x – a tile.
+op – numpy ALU operator to use to reduce over the input tile.
+loop_indices – a single loop index or a tuple of loop indices along which the reduction operation is performed. Can be numbers or loop_index objects coming from nl.affine_range.
+dtype – (optional) data type to cast the output type to (see Supported Data Types for more information); if not specified, it will default to be the same as the data type of the input tile.
+mask – (optional) a compile-time constant predicate that controls whether/how this instruction is executed (see NKI API Masking for details)
+
+Returns:
+the reduced resulting tile

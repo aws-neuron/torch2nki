@@ -1,0 +1,13 @@
+nki.language.num_programs
+
+Signature:
+nki.language.num_programs(axes=None)
+
+Description:
+Number of SPMD programs along the given axes in the launch grid. If axes is not provided, returns the total number of programs.
+
+Parameters:
+axes – The axes of the ND launch grid. If not provided, returns the total number of programs along the entire launch grid.
+
+Returns:
+The number of SPMD(single process multiple data) programs along axes in the launch grid

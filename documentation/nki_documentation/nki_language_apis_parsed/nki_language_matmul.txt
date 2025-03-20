@@ -1,0 +1,21 @@
+nki.language.matmul
+
+Signature:
+nki.language.matmul(x, y, *, transpose_x=False, mask=None, **kwargs)
+
+Description:
+x @ y matrix multiplication of x and y.
+((Similar to numpy.matmul))
+Note
+For optimal performance on hardware, use nki.isa.nc_matmul() or call nki.language.matmul with transpose_x=True. Use nki.isa.nc_matmul also to access low-level features of the Tensor Engine.
+Note
+Implementation details: nki.language.matmul calls nki.isa.nc_matmul under the hood. nc_matmul is neuron specific customized implementation of matmul that computes x.T @ y, as a result, matmul(x, y) lowers to nc_matmul(transpose(x), y). To avoid this extra transpose instruction being inserted, use x.T and transpose_x=True inputs to this matmul.
+
+Parameters:
+x – a tile on SBUF (partition dimension <= 128, free dimension <= 128), x’s free dimension must match y’s partition dimension.
+y – a tile on SBUF (partition dimension <= 128, free dimension <= 512)
+transpose_x – Defaults to False. If True, x is treated as already transposed. If False, an additional transpose will be inserted to make x’s partition dimension the contract dimension of the matmul to align with the Tensor Engine.
+mask – (optional) a compile-time constant predicate that controls whether/how this instruction is executed (see NKI API Masking for details)
+
+Returns:
+x @ y or x.T @ y if transpose_x=True

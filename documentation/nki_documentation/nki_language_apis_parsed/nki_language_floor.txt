@@ -1,0 +1,17 @@
+nki.language.floor
+
+Signature:
+nki.language.floor(x, *, dtype=None, mask=None, **kwargs)
+
+Description:
+Floor of the input, element-wise.
+((Similar to numpy.floor))
+The floor of the scalar x is the largest integer i, such that i <= x.
+
+Parameters:
+x – a tile.
+dtype – (optional) data type to cast the output type to (see Supported Data Types for more information); if not specified, it will default to be the same as the data type of the input tile.
+mask – (optional) a compile-time constant predicate that controls whether/how this instruction is executed (see NKI API Masking for details)
+
+Returns:
+a tile that has floor values of x.

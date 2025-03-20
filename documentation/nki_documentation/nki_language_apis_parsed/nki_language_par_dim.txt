@@ -1,0 +1,7 @@
+nki.language.par_dim
+
+Signature:
+nki.language.par_dim = Ellipsis
+
+Description:
+Mark a dimension explicitly as a partition dimension.

@@ -1,0 +1,15 @@
+nki.language.expand_dims
+
+Signature:
+nki.language.expand_dims(data, axis)
+
+Description:
+Expand the shape of a tile. Insert a new axis that will appear at the axis position in the expanded tile shape. Currently only supports expanding dimensions after the last index of the tile.
+((Similar to numpy.expand_dims))
+
+Parameters:
+data – a tile input
+axis – int or tuple/list of ints. Position in the expanded axes where the new axis (or axes) is placed; must be free dimensions, not partition dimension (0); Currently only supports axis (or axes) after the last index.
+
+Returns:
+a tile with view of input data with the number of dimensions increased.

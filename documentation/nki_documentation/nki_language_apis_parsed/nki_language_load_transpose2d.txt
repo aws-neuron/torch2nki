@@ -1,0 +1,30 @@
+nki.language.load_transpose2d
+
+Signature:
+nki.language.load_transpose2d(src, *, mask=None, dtype=None, **kwargs)
+
+Description:
+Load a tensor from device memory (HBM) and 2D-transpose the data before storing into on-chip memory (SBUF).
+
+Parameters:
+src – HBM tensor to load the data from.
+mask – (optional) a compile-time constant predicate that controls whether/how this instruction is executed (see NKI API Masking for details)
+dtype – (optional) data type to cast the output type to (see Supported Data Types for more information); if not specified, it will default to be the same as the data type of the input tile.
+
+Returns:
+a new tile on SBUF with values from src 2D-transposed.
+
+Example:
+import neuronxcc.nki.language as nl
+from neuronxcc.nki.typing import tensor
+...
+
+
+# load from in_tensor[F, P] that is on HBM
+# transpose and copy into local_tile[P, F] that is on SBUF
+N, M = in_tensor.shape
+local_tile: tensor[M, N] = nl.load_transpose2d(in_tensor)
+...
+
+Note:
+Partition dimension size can’t exceed the hardware limitation of nki.language.tile_size.pmax, see Tile size considerations.

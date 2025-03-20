@@ -1,0 +1,15 @@
+nki.language.transpose
+
+Signature:
+nki.language.transpose(x, *, dtype=None, mask=None, **kwargs)
+
+Description:
+Transposes a 2D tile between its partition and free dimension.
+
+Parameters:
+x – 2D input tile
+dtype – (optional) data type to cast the output type to (see Supported Data Types for more information); if not specified, it will default to be the same as the data type of the input tile.
+mask – (optional) a compile-time constant predicate that controls whether/how this instruction is executed (see NKI API Masking for details)
+
+Returns:
+a tile that has the values of the input tile with its partition and free dimensions swapped.

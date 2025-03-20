@@ -1,0 +1,59 @@
+nki.language.add
+
+Signature:
+nki.language.add(x, y, *, dtype=None, mask=None, **kwargs)
+
+Description:
+Add the inputs, element-wise.
+((Similar to numpy.add))
+
+Parameters:
+x – a tile or a scalar value.
+y – a tile or a scalar value. x.shape and y.shape must be broadcastable to a common shape, that will become the shape of the output.
+dtype – (optional) data type to cast the output type to (see Supported Data Types for more information); if not specified, it will default to be the same as the data type of the input tiles, or whichever input type has the highest precision (see NKI Type Promotion for more information);
+mask – (optional) a compile-time constant predicate that controls whether/how this instruction is executed (see NKI API Masking for details)
+
+Returns:
+a tile that has x + y, element-wise.
+
+Example:
+import neuronxcc.nki.language as nl
+
+a = nl.load(a_tensor[0:128, 0:512])
+b = nl.load(b_tensor[0:128, 0:512])
+# add a and b element-wise and store in c[128, 512]
+c = nl.add(a, b)
+nl.store(c_tensor[0:128, 0:512], c)
+
+a = nl.load(a_tensor[0:128, 0:512])
+b = 2.2
+# add constant b to each element in a
+c = nl.add(a, b)
+nl.store(c_tensor[0:128, 0:512], c)
+
+a = nl.load(a_tensor[0:128, 0:512])
+b = nl.load(b_tensor[0:128, 0:1])
+# broadcast on free dimension -- [128, 1] is broadcasted to [128, 512]
+c = nl.add(a, b)
+nl.store(c_tensor[0:128, 0:512], c)
+
+a = nl.load(a_tensor[0:128, 0:512])
+b = nl.load(b_tensor[0:1, 0:512])
+# broadcast on partition dimension -- [1, 512] is broadcasted to [128, 512]
+c = nl.add(a, b)
+nl.store(c_tensor[0:128, 0:512], c)
+
+a = nl.load(a_tensor[0:128, 0:512])
+b = nl.load(b_tensor[0:1, 0:1])
+# broadcast on both dimensions -- [1, 1] is broadcasted to [128, 512]
+c = nl.add(a, b)
+nl.store(c_tensor[0:128, 0:512], c)
+
+a = nl.load(a_tensor[0:128, 0:1])
+b = nl.load(b_tensor[0:1, 0:512])
+# broadcast on each dimensions -- [128, 1] and [1, 512] are broadcasted to [128, 512]
+c = nl.add(a, b)
+nl.store(c_tensor[0:128, 0:512], c)
+
+Note:
+Broadcasting in the partition dimension is generally more expensive than broadcasting in free dimension. It is recommended to align your data to perform free dimension broadcast whenever possible.

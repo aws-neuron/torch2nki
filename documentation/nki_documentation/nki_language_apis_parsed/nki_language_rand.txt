@@ -1,0 +1,14 @@
+nki.language.rand
+
+Signature:
+nki.language.rand(shape, dtype=<class 'numpy.float32'>, **kwargs)
+
+Description:
+Generate a tile of given shape and dtype, filled with random values that are sampled from a uniform distribution between 0 and 1.
+
+Parameters:
+shape – the shape of the tile.
+dtype – the data type of the tile (see Supported Data Types for more information).
+
+Returns:
+a tile with random values.

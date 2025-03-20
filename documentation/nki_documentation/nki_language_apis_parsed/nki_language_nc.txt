@@ -1,0 +1,60 @@
+nki.language.nc
+
+Signature:
+nki.language.nc = Ellipsis
+
+Description:
+Create a logical neuron core dimension in launch grid.
+The instances of spmd kernel will be distributed to different physical neuron cores on the annotated dimension.
+
+Example:
+# Let compiler decide how to distribute the instances of spmd kernel
+c = kernel[2, 2](a, b)
+
+import neuronxcc.nki.language as nl
+
+# Distribute the kernel to physical neuron cores around the first dimension
+# of the spmd grid.
+c = kernel[nl.nc(2), 2](a, b)
+# This means:
+# Physical NC [0]: kernel[0, 0], kernel[0, 1]
+# Physical NC [1]: kernel[1, 0], kernel[1, 1]
+
+Note:
+Sometimes the size of a spmd dimension is bigger than the number of available physical neuron cores. We can control the distribution with the following syntax:
+import neuronxcc.nki.language as nl
+
+
+@nki.jit
+def nki_spmd_kernel(a):
+  b = nl.ndarray(a.shape, dtype=a.dtype, buffer=nl.shared_hbm)
+  i = nl.program_id(0)
+  j = nl.program_id(1)
+  
+  a_tile = nl.load(a[i, j])
+  nl.store(b[i, j], a_tile)
+
+  return b
+
+############################################################################
+# Example 1: Let compiler decide how to distribute the instances of spmd kernel
+############################################################################
+dst = nki_spmd_kernel[4, 2](src)
+
+############################################################################
+# Example 2: Distribute SPMD kernel instances to physical NeuronCores with
+# explicit annotations. Expected physical NeuronCore assignments:
+#   Physical NC [0]: kernel[0, 0], kernel[0, 1], kernel[1, 0], kernel[1, 1]
+#   Physical NC [1]: kernel[2, 0], kernel[2, 1], kernel[3, 0], kernel[3, 1]
+############################################################################
+dst = nki_spmd_kernel[nl.spmd_dim(nl.nc(2), 2), 2](src)
+dst = nki_spmd_kernel[nl.nc(2) * 2, 2](src)  # syntactic sugar
+
+############################################################################
+# Example 3: Distribute SPMD kernel instances to physical NeuronCores with
+# explicit annotations. Expected physical NeuronCore assignments:
+#   Physical NC [0]: kernel[0, 0], kernel[0, 1], kernel[2, 0], kernel[2, 1]
+#   Physical NC [1]: kernel[1, 0], kernel[1, 1], kernel[3, 0], kernel[3, 1]
+############################################################################
+dst = nki_spmd_kernel[nl.spmd_dim(2, nl.nc(2)), 2](src)
+dst = nki_spmd_kernel[2 * nl.nc(2), 2](src)  # syntactic sugar

@@ -1,0 +1,17 @@
+nki.language.var
+
+Signature:
+nki.language.var(x, axis, *, dtype=None, mask=None, **kwargs)
+
+Description:
+Variance along the specified axis (or axes) of the input.
+((Similar to numpy.var))
+
+Parameters:
+x – a tile.
+axis – int or tuple/list of ints. The axis (or axes) along which to operate; must be free dimensions, not partition dimension (0); can only be the last contiguous dim(s) of the tile: [1], [1,2], [1,2,3], [1,2,3,4]
+dtype – (optional) data type to cast the output type to (see Supported Data Types for more information); if not specified, it will default to be the same as the data type of the input tile.
+mask – (optional) a compile-time constant predicate that controls whether/how this instruction is executed (see NKI API Masking for details)
+
+Returns:
+a tile with the variance of the elements along the provided axis. This return tile will have a shape of the input tile’s shape with the specified axes removed.

@@ -1,0 +1,19 @@
+nki.language.all_reduce
+
+Signature:
+nki.language.all_reduce(x, op, program_axes, *, dtype=None, mask=None, parallel_reduce=True, asynchronous=False, **kwargs)
+
+Description:
+Apply reduce operation over multiple SPMD programs.
+
+Parameters:
+x – a tile.
+op – numpy ALU operator to use to reduce over the input tile.
+program_axes – a single axis or a tuple of axes along which the reduction operation is performed.
+dtype – (optional) data type to cast the output type to (see Supported Data Types for more information); if not specified, it will default to be the same as the data type of the input tile.
+mask – (optional) a compile-time constant predicate that controls whether/how this instruction is executed (see NKI API Masking for details)
+parallel_reduce – optional boolean parameter whether to turn on parallel reduction. Enable parallel reduction consumes additional memory.
+asynchronous – Defaults to False. If True, caller should synchronize before reading final result, e.g. using nki.sync_thread.
+
+Returns:
+the reduced resulting tile

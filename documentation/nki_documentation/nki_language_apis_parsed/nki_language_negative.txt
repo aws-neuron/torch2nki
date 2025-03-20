@@ -1,0 +1,16 @@
+nki.language.negative
+
+Signature:
+nki.language.negative(x, *, dtype=None, mask=None, **kwargs)
+
+Description:
+Numerical negative of the input, element-wise.
+((Similar to numpy.negative))
+
+Parameters:
+x – a tile.
+dtype – (optional) data type to cast the output type to (see Supported Data Types for more information); if not specified, it will default to be the same as the data type of the input tile.
+mask – (optional) a compile-time constant predicate that controls whether/how this instruction is executed (see NKI API Masking for details)
+
+Returns:
+a tile that has numerical negative values of x.

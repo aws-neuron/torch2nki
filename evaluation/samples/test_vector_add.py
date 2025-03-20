@@ -43,7 +43,7 @@ def find_function_name_in_code(kernel_code):
 
 def main():
     # Extract the kernel code from the LLM-generated file
-    file_path = "../../generation/samples/vector_add_kernel.txt"  # TODO: change to correct file path or make file path an arg
+    file_path = "generation/samples_bedrock/vector_add_haiku.txt"  # TODO: change to correct file path or make file path an arg
     
     # Extract the actual code from the LLM output
     kernel_code = extract_kernel_from_llm_response(file_path)
@@ -51,20 +51,20 @@ def main():
     # Extract the defined kernel name from the LLM output
     func_name = find_function_name_in_code(kernel_code)
     
-    # Sanity check
-    print(kernel_code)
-    print(func_name)
+    # # Sanity check
+    # print(kernel_code)
+    # print(func_name)
 
     # Dynamically define the kernel
     #exec(kernel_code, globals())
 
-    #write kernel code to a python file
-    with open("vector_add.py", "w", encoding="utf-8") as f:
+    #write kernel code to a python filec
+    with open("vector_add_kernel.py", "w", encoding="utf-8") as f:
         f.write(kernel_code)
 
 
     #import kernel code
-    from vector_add import vector_add_kernel  
+    from vector_add_kernel import vector_add_kernel  
 
 
 
@@ -82,8 +82,10 @@ def main():
         np.array(lhs_small), 
         np.array(rhs_small)
     )
-
+    print(output_nki)
     # Compare with PyTorch reference to check correctness
+    print("\n\n\n\\n")
+    print("hellp")
     output_torch = torch.add(lhs_small, rhs_small)
 
     # allclose check

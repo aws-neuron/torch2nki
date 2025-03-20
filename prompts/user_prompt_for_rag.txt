@@ -1,0 +1,40 @@
+Generate a custom kernel for vector addition a using AWS Neural Kernel Interface (NKI). The kernel should:
+- Use the proper NKI API integration.
+- Follow best practices for compilation.
+- Be well-structured, modular, and maintainable.
+- Only write the kernel. Nothing else.
+- Once again. ONLY write the kernel. Nothing else.
+
+Here is a python implementation for it:
+
+def vector_add(v1, v2):
+    """
+    Adds two vectors element-wise using an explicit loop.
+    :param v1: List of numbers (first vector)
+    :param v2: List of numbers (second vector)
+    :return: List representing the sum of the two vectors
+    """
+    if len(v1) != len(v2):
+        raise ValueError("Vectors must be of the same length")
+    
+    result = []
+    for i in range(len(v1)):
+        result.append(v1[i] + v2[i])
+    
+    return result
+
+Don't use libnrt.so.1
+
+Make sure to return the output. Make sure to import nki: from neuronxcc import nki
+
+ignore everything after this
+Here is the kernel you just wrote:
+
+
+
+Here is the error message it got:
+
+
+
+
+Can you try to fix it! Thanks!

@@ -1,0 +1,29 @@
+USER PROMPT:
+Generate a custom kernel for vector addition a using AWS Neural Kernel Interface (NKI). The kernel should:
+- Use the proper NKI API integration.
+- Follow best practices for compilation.
+- Be well-structured, modular, and maintainable.
+
+
+Here is a python implementation for it:
+
+def vector_add(v1, v2):
+    """
+    Adds two vectors element-wise using an explicit loop.
+    :param v1: List of numbers (first vector)
+    :param v2: List of numbers (second vector)
+    :return: List representing the sum 
+
+GENERATED QUERY:
+Key technical concepts for the CUDA kernel include:
+- Proper integration of the NKI API for AWS.
+- Efficient memory management for data transfer between host and device.
+- Utilization of CUDA threads and blocks for parallel computation.
+- Error handling and synchronization mechanisms.
+- Optimization techniques such as shared memory usage and coalesced memory access.
+- Understanding of data parallelism and thread divergence.
+- Profiling and performance tuning for optimal execution.
+
+RETRIEVED CONTEXT:
+No relevant documents found.
+

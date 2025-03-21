@@ -4,11 +4,11 @@ from openai import OpenAI  # Or another embedding service
 import time
 
 # Initialize OpenAI client
-os.environ["OPENAI_API_KEY"] = "###"
+os.environ["OPENAI_API_KEY"] = "##"
 openai_client = OpenAI()
 
 # Initialize Pinecone
-pc = Pinecone(api_key="###")
+pc = Pinecone(api_key="##")
 index = pc.Index(host="https://nkidocs-7ygnls2.svc.aped-4627-b74a.pinecone.io")
 
 # Function to get embeddings

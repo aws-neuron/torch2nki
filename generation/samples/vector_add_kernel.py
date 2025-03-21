@@ -1,31 +1,44 @@
-import neuronxcc.nki.language as nl
-from neuronxcc import nki
+import neuronxcc as nki
 
-@nki.jit
-def vector_add_kernel(v1, v2):
+# Define the kernel for vector addition
+@nki.kernel
+def vector_add_kernel(v1, v2, result):
     """
-    Vector addition kernel that adds two input vectors element-wise.
-
-    :param v1: First input vector (1D tensor).
-    :param v2: Second input vector (1D tensor).
-    :return: Resultant vector after addition (1D tensor).
+    Kernel to add two vectors element-wise.
+    
+    :param v1: Input vector 1 (tile)
+    :param v2: Input vector 2 (tile)
+    :param result: Output vector (tile)
     """
-    # Assume v1 and v2 are 1D tensors of the same size
-    size = v1.shape[0]
+    # Define the range for the vector elements
+    for i in nki.language.affine_range(v1.shape[0]):
+        result[i] = v1[i] + v2[i]
 
-    # Create an output tensor of the same size, ensuring the shape is a tuple
-    result = nl.zeros((size,), dtype=v1.dtype)
+def vector_add(v1, v2):
+    """
+    Wrapper function to perform vector addition using the NKI kernel.
 
-    # Define the range for the loop using affine_range
-    for i in nl.affine_range(size):  # Use affine_range instead of arange for compatibility
-        # Load the elements from the input tensors
-        a = nl.load(v1[i:i + 1])  # Load one element for current index
-        b = nl.load(v2[i:i + 1])  # Load one element for current index
-        
-        # Perform element-wise addition
-        c = nl.add(a, b)
+    :param v1: List of numbers (first vector)
+    :param v2: List of numbers (second vector)
+    :return: List representing the sum of the two vectors
+    """
+    if len(v1) != len(v2):
+        raise ValueError("Vectors must be of the same length")
 
-        # Store the result back into the output tensor
-        nl.store(result[i:i + 1], c)  # Store the computed value
+    # Convert input lists to NKI tiles
+    tile_v1 = nki.make_tile(v1)
+    tile_v2 = nki.make_tile(v2)
+    result_tile = nki.make_tile([0] * len(v1))  # Initialize output tile
 
-    return result
+    # Launch the kernel
+    vector_add_kernel(tile_v1, tile_v2, result_tile)
+
+    # Retrieve and return the result as a list
+    return result_tile.to_list()
+
+# Example usage
+if __name__ == "__main__":
+    v1 = [1, 2, 3, 4]
+    v2 = [5, 6, 7, 8]
+    result = vector_add(v1, v2)
+    print("Result of vector addition:", result)

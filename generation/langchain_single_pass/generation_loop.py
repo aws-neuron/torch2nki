@@ -1,198 +1,15 @@
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from langchain_pinecone import PineconeVectorStore
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.runnables import RunnablePassthrough, RunnableLambda
-from langchain.callbacks.tracers import LangChainTracer
-from langchain.callbacks.manager import CallbackManager
-from pinecone import Pinecone
 import os
-import re
-import subprocess
-import time
+import sys
 import traceback
 import datetime
 
-# Set up LangChain tracing
-os.environ["LANGCHAIN_TRACING_V2"] = "false"
-os.environ["LANGCHAIN_API_KEY"] = os.environ.get("LANGCHAIN_API_KEY", "")
-os.environ["LANGCHAIN_PROJECT"] = "torch2nki"
 
-######################
-# Extraction and Utility Functions
-######################
-
-def extract_kernel_from_llm_response(content):
-    """
-    Locates the Python code block (enclosed by triple backticks) in the content,
-    and extracts only the code inside.
-    """
-    pattern = re.compile(r"```python\s+(.*?)\s+```", re.DOTALL)
-    match = pattern.search(content)
-    if not match:
-        raise ValueError("Could not find a fenced Python code block in the generated output.")
-    
-    kernel_code = match.group(1)
-    return kernel_code.strip()
-
-def extract_reasoning(completion_text):
-    """
-    Extracts any text enclosed in triple stars (*** ... ***) from the completion text.
-    Returns a string with all found reasoning (each block separated by a newline).
-    """
-    pattern = re.compile(r"\*\*\*\s*(.*?)\s*\*\*\*", re.DOTALL)
-    matches = pattern.findall(completion_text)
-    if matches:
-        return "\n".join(matches)
-    else:
-        return ""
-
-def run_script_and_save_output(script_path, output_file):
-    """
-    Executes a Python script and captures its stdout and stderr.
-    """
-    result = subprocess.run(
-        ['python', script_path],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True
-    )
-    
-    combined_output = result.stdout + "\n" + result.stderr
-    with open(output_file, "w", encoding="utf-8") as f:
-        f.write(combined_output)
-    
-    print(f"Test script output saved to {output_file}")
-    return combined_output
-
-def read_file(path):
-    with open(path, "r", encoding="utf-8") as f:
-        return f.read()
-
-def write_file(path, content):
-    with open(path, "w", encoding="utf-8") as f:
-        f.write(content)
-
-def log_to_file(log_file_path, message, append=True):
-    """Log a message to a file, with option to append or overwrite."""
-    mode = "a" if append else "w"
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    with open(log_file_path, mode, encoding="utf-8") as f:
-        f.write(f"[{timestamp}] {message}\n")
-
-######################
-# LangChain RAG Functions
-######################
-
-def setup_rag_components(pinecone_api_key, pinecone_index_name):
-    """Set up and return the RAG components."""
-    # Initialize LLMs
-    query_llm = ChatOpenAI(
-        model="gpt-4o-mini",
-        temperature=0.3
-    )
-    
-    kernel_llm = ChatOpenAI(
-        model="gpt-4o-mini", 
-        temperature=0.7
-    )
-    
-    # Initialize embeddings
-    embeddings = OpenAIEmbeddings(
-        model="text-embedding-3-large"
-    )
-    
-    # Set up vector store and retriever with improved error handling
-    try:
-        # Initialize Pinecone client
-        pc = Pinecone(api_key=pinecone_api_key)
-        
-        # Get the index instance
-        index = pc.Index(name=pinecone_index_name)
-        
-        # Check for namespaces in the index
-        stats = index.describe_index_stats()
-        namespaces = list(stats.get('namespaces', {}).keys())
-        active_namespace = namespaces[0] if namespaces else None
-        
-        print(f"Index contains {stats.get('total_vector_count', 0)} vectors")
-        
-        if active_namespace:
-            print(f"Using namespace: {active_namespace}")
-            # Create the vector store using the index with namespace
-            vectorstore = PineconeVectorStore(
-                embedding=embeddings,
-                index=index,
-                namespace=active_namespace
-            )
-        else:
-            # Create the vector store without namespace
-            vectorstore = PineconeVectorStore(
-                embedding=embeddings,
-                index=index
-            )
-        
-        # Create retriever with increased k to ensure we get results
-        retriever = vectorstore.as_retriever(
-            search_type="similarity",
-            search_kwargs={"k": 5}  # Increased from 2 to 5 to get more results
-        )
-        
-        # Test the retriever with a simple query to validate it works
-        test_results = retriever.invoke("language apis")
-        if test_results:
-            print(f"Successfully connected to Pinecone and retrieved {len(test_results)} documents")
-        else:
-            print("Connected to Pinecone but retrieval returned no results - continuing anyway")
-        
-    except Exception as e:
-        print(f"Error initializing Pinecone: {e}")
-        print("Falling back to dummy retriever")
-        # Create a dummy retriever that returns empty results
-        class DummyRetriever:
-            def invoke(self, _):
-                return []
-        
-        retriever = DummyRetriever()
-    
-    # Create the query generation chain
-    query_generation_prompt = ChatPromptTemplate.from_template(
-        "Identify key technical concepts for NKI kernel. Be brief (max 100 words).\n\n"
-        "What technical concepts should I retrieve for this kernel task? Use a bullet point list of different functions / methods that could be helpful{user_prompt}"
-    )
-    
-    query_generation_chain = (
-        query_generation_prompt 
-        | query_llm 
-        | StrOutputParser()
-    )
-    
-    return query_generation_chain, retriever, kernel_llm
-
-def format_context(docs):
-    """Format the retrieved documents into a context string."""
-    context = ""
-    for i, doc in enumerate(docs):
-        context += f"Doc{i+1}: "
-        
-        # Get content
-        content = doc.page_content
-        metadata = doc.metadata
-        
-        # Get title from metadata if available
-        title = metadata.get('title', 'No title')
-        
-        # Check if content is too long
-        if len(content) > 500:
-            content = content[:500] + "..."
-            
-        context += f"{title} - {content}\n\n"
-        
-    if not context:
-        context = "No relevant documents found."
-        
-    return context
-
+# Now you can import using relative imports
+from .utils import hello
+from .rag_funcs import setup_rag_components, format_context
+from .extraction import extract_kernel_from_llm_response, extract_reasoning, run_script_and_save_output, read_file, write_file, log_to_file
 
 def generate_kernel_with_rag_and_error_loop(
     system_prompt_path, 
@@ -411,15 +228,6 @@ def generate_kernel_with_rag_and_error_loop(
         
         with open(output_address + ".query_log", "a") as f:
             f.write(f"\nPIPELINE ERROR:\n{error_details}")
-
-
-
-
-
-
-
-
-
 
 if __name__ == "__main__":
     # Define constant file paths

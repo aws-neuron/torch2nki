@@ -31,13 +31,13 @@ Make sure to return the output. Make sure to import nki: from neuronxcc import n
 GENERATED QUERY:
 Key technical concepts for the NKI kernel include:
 
-1. **NKI API Integration**: Utilize the NKI framework for seamless interaction with AWS services.
-2. **Modularity**: Structure the kernel into distinct components for clarity and maintainability.
+1. **NKI API Integration**: Utilize the NKI API for seamless interaction with AWS services.
+2. **Kernel Structure**: Organize code into modular components for clarity and maintainability.
 3. **Compilation Best Practices**: Optimize compilation settings for performance and compatibility.
-4. **Error Handling**: Implement robust error checking to ensure input validity.
-5. **Performance Optimization**: Consider parallelization or vectorization techniques for efficiency.
+4. **Error Handling**: Implement robust error-checking mechanisms.
+5. **Vector Operations**: Focus on efficient element-wise operations for vector manipulation.
 
-Here’s a custom kernel for vector addition using NKI:
+Here’s a custom kernel for vector addition using the NKI:
 
 ```python
 from neuronxcc import nki
@@ -58,15 +58,18 @@ def vector_add(v1, v2):
     
     return result
 
-# Example usage
-if __name__ == "__main__":
+def main():
+    # Example usage
     vector1 = [1, 2, 3]
     vector2 = [4, 5, 6]
     output = vector_add(vector1, vector2)
     print("Result:", output)
+
+if __name__ == "__main__":
+    main()
 ```
 
-This implementation adheres to the specified requirements and best practices.
+This kernel adheres to the NKI API, is modular, and includes error handling.
 
 RETRIEVED CONTEXT:
 Doc1: No title - nki.language.add

@@ -1,44 +1,43 @@
-import neuronxcc as nki
+from neuronxcc import nki
 
-# Define the kernel for vector addition
-@nki.kernel
-def vector_add_kernel(v1, v2, result):
+def vector_add_kernel(v1, v2):
     """
-    Kernel to add two vectors element-wise.
+    Kernel for adding two vectors element-wise using NKI.
     
-    :param v1: Input vector 1 (tile)
-    :param v2: Input vector 2 (tile)
-    :param result: Output vector (tile)
+    :param v1: First input vector (tile).
+    :param v2: Second input vector (tile).
+    :return: Resulting vector (tile) after addition.
     """
-    # Define the range for the vector elements
-    for i in nki.language.affine_range(v1.shape[0]):
-        result[i] = v1[i] + v2[i]
+    # Using NKI to perform element-wise addition
+    result = nki.language.add(v1, v2)
+    return result
 
-def vector_add(v1, v2):
+def main(v1, v2):
     """
-    Wrapper function to perform vector addition using the NKI kernel.
-
-    :param v1: List of numbers (first vector)
-    :param v2: List of numbers (second vector)
-    :return: List representing the sum of the two vectors
+    Main function to launch the vector addition kernel.
+    
+    :param v1: First vector (list or tile).
+    :param v2: Second vector (list or tile).
+    :return: Resulting vector after addition.
     """
+    # Validate input dimensions
     if len(v1) != len(v2):
         raise ValueError("Vectors must be of the same length")
-
-    # Convert input lists to NKI tiles
-    tile_v1 = nki.make_tile(v1)
-    tile_v2 = nki.make_tile(v2)
-    result_tile = nki.make_tile([0] * len(v1))  # Initialize output tile
-
-    # Launch the kernel
-    vector_add_kernel(tile_v1, tile_v2, result_tile)
-
-    # Retrieve and return the result as a list
-    return result_tile.to_list()
+    
+    # Convert input lists to NKI tiles if necessary
+    v1_tile = nki.tile(v1)
+    v2_tile = nki.tile(v2)
+    
+    # Execute the kernel
+    result_tile = vector_add_kernel(v1_tile, v2_tile)
+    
+    # Convert the result tile back to a list (if needed)
+    result = result_tile.to_list()  # assuming to_list() method converts tile to list
+    return result
 
 # Example usage
 if __name__ == "__main__":
-    v1 = [1, 2, 3, 4]
-    v2 = [5, 6, 7, 8]
-    result = vector_add(v1, v2)
+    vec1 = [1, 2, 3, 4]
+    vec2 = [5, 6, 7, 8]
+    result = main(vec1, vec2)
     print("Result of vector addition:", result)

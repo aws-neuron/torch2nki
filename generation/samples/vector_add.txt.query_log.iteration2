@@ -1,86 +1,80 @@
-USER PROMPT:
-Generate a custom kernel for vector addition a using AWS Neural Kernel Interface (NKI). The kernel should:
-- Use the proper NKI API integration.
-- Follow best practices for compilation.
-- Be well-structured, modular, and maintainable.
+ITERATION 2 QUERY:
 
+ERROR MESSAGE:
 
-Here is a python implementation for it:
-
-def vector_add(v1, v2):
-    """
-    Adds two vectors element-wise using an explicit loop.
-    :param v1: List of numbers (first vector)
-    :param v2: List of numbers (second vector)
-    :return: List representing the sum of the two vectors
-    """
-    if len(v1) != len(v2):
-        raise ValueError("Vectors must be of the same length")
-    
-    result = []
-    for i in range(len(v1)):
-        result.append(v1[i] + v2[i])
-    
-    return result
-
-Don't use libnrt.so.1
-
-Make sure to return the output. Make sure to import nki: from neuronxcc import nki
+Traceback (most recent call last):
+  File "/Users/rgopalam/Desktop/AWS-NKI/torch2nki/evaluation/samples/test_vector_add.py", line 2, in <module>
+    import torch
+ModuleNotFoundError: No module named 'torch'
 
 
 GENERATED QUERY:
 ### Key Technical Concepts for NKI Kernel
 - NKI API integration
-- Vector operations
-- Memory management
-- Compilation best practices
+- Kernel compilation best practices
 - Modular design
+- Vector operations
 - Error handling
 - Performance optimization
 
-### Specific Vector Operations to Implement
-- Element-wise addition
-- Element-wise subtraction
-- Element-wise multiplication
-- Element-wise division
-- Dot product
-- Cross product (for 3D vectors)
+### Useful Functions/Methods for Vector Operations
+- `nki.create_kernel()`
+- `nki.compile_kernel()`
+- `nki.execute_kernel()`
+- `nki.set_input()`
+- `nki.get_output()`
+- `nki.cleanup()`
 
-### Custom Kernel for Vector Addition using AWS NKI
+### Custom Kernel for Vector Addition using NKI
 
 ```python
 from neuronxcc import nki
 
 def vector_add_kernel(v1, v2):
     """
-    Custom kernel for adding two vectors using AWS NKI.
+    Custom kernel for vector addition using NKI.
     :param v1: List of numbers (first vector)
     :param v2: List of numbers (second vector)
     :return: List representing the sum of the two vectors
     """
     if len(v1) != len(v2):
         raise ValueError("Vectors must be of the same length")
-    
-    # Initialize result vector
-    result = nki.create_vector(len(v1))
-    
-    # Perform element-wise addition
-    for i in range(len(v1)):
-        result[i] = v1[i] + v2[i]
-    
-    return result
 
-# Example usage
-v1 = [1, 2, 3]
-v2 = [4, 5, 6]
-output = vector_add_kernel(v1, v2)
-print(output)  # Output: [5, 7, 9]
+    # Create the kernel
+    kernel_code = """
+    __kernel void vector_add(__global const float* v1, __global const float* v2, __global float* result, int length) {
+        int id = get_global_id(0);
+        if (id < length) {
+            result[id] = v1[id] + v2[id];
+        }
+    }
+    """
+
+    # Compile the kernel
+    kernel = nki.create_kernel(kernel_code)
+    
+    # Set inputs
+    nki.set_input('v1', v1)
+    nki.set_input('v2', v2)
+    
+    # Allocate output
+    result = [0] * len(v1)
+    nki.set_input('result', result)
+    
+    # Execute the kernel
+    nki.execute_kernel('vector_add', len(v1))
+    
+    # Get output
+    output = nki.get_output('result')
+    
+    # Cleanup
+    nki.cleanup()
+    
+    return output
 ```
 
-### Notes
-- Ensure that the NKI environment is properly set up for compilation.
-- Follow modular design principles for maintainability.
-- Handle errors gracefully to avoid runtime issues.
+### Note
+Ensure that the NKI environment is correctly set up and that the required modules are installed to avoid import errors.
 
 RETRIEVED CONTEXT:
 Doc1: No title - nki.language.add
@@ -144,19 +138,13 @@ op – numpy ALU operator to use to reduce over the input tile.
 program_axes – a single axis or a tuple of axes along which the reduction operation is performed.
 dtype – (optional) data type to cast the output type to (see Supported Data Types for more...
 
-Doc5: No title - nki.language.subtract
+Doc5: No title - nki.language.affine_range
 
 Signature:
-nki.language.subtract(x, y, *, dtype=None, mask=None, **kwargs)
+nki.language.affine_range(*args, **kwargs)
 
 Description:
-Subtract the inputs, element-wise.
-((Similar to numpy.subtract))
-
-Parameters:
-x – a tile or a scalar value.
-y – a tile or a scalar value. x.shape and y.shape must be broadcastable to a common shape, that will become the shape of the output.
-dtype – (optional) data type to cast the output type to (see Supported Data Types for more information); if not specified, it will default to be th...
+Create a sequence of numbers for use as parallel loop iterators in NKI. affine_range should be the default loop iterator choice, when there is no loop carried dependency. Note, associative reductions are not considered loop carried dependencies in this context. A concrete example of associative reduction is multiple nl.matmul or nisa.nc_matmul calls accumulating into the same output buffer defined outs...
 
 
 

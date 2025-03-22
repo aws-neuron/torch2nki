@@ -7,7 +7,7 @@ import datetime
 
 
 # Now you can import using relative imports
-from .utils import hello
+
 from .rag_funcs import setup_rag_components, format_context
 from .extraction import extract_kernel_from_llm_response, extract_reasoning, run_script_and_save_output, read_file, write_file, log_to_file
 

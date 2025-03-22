@@ -1,9 +1,9 @@
-[2025-03-21 18:27:32] === DETAILED TRACE LOG ===
-[2025-03-21 18:27:32] Starting new kernel generation process at 2025-03-21 18:27:32.861146
-[2025-03-21 18:27:32] System Prompt:
+[2025-03-21 19:00:07] === DETAILED TRACE LOG ===
+[2025-03-21 19:00:07] Starting new kernel generation process at 2025-03-21 19:00:07.485400
+[2025-03-21 19:00:07] System Prompt:
 You are a engineer at Annapurna Labs writing efficent and correct kernels.
 
-[2025-03-21 18:27:32] User Prompt:
+[2025-03-21 19:00:07] User Prompt:
 Generate a custom kernel for vector addition a using AWS Neural Kernel Interface (NKI). The kernel should:
 - Use the proper NKI API integration.
 - Follow best practices for compilation.
@@ -33,94 +33,18 @@ Don't use libnrt.so.1
 Make sure to return the output. Make sure to import nki: from neuronxcc import nki
 
 
-[2025-03-21 18:27:36] GENERATING RETRIEVAL QUERY...
-[2025-03-21 18:27:36] COMBINED PROMPT FOR QUERY:
-Generate a custom kernel for vector addition a using AWS Neural Kernel Interface (NKI). The kernel should:
-- Use the proper NKI API integration.
-- Follow best practices for compilation.
-- Be well-structured, modular, and maintainable.
+[2025-03-21 19:00:07] AVAILABLE FUNCTIONS:
+abs, add, affine_range, all, all_reduce, arange, arctan, atomic_rmw, bitwise_and, bitwise_or, bitwise_xor, ceil, copy, cos, device_print, divide, dropout, ds, equal, erf, erf_dx, exp, expand_dims, floor, full, gelu, gelu_apprx_tanh, gelu_dx, greater, greater_equal, hbm, invert, left_shift, less, less_equal, load, load_transpose2d, log, logical_and, logical_not, logical_or, logical_xor, loop_reduce, matmul, max, maximum, mean, mgrid, min, minimum, mish, multiply, nc, ndarray, negative, not_equal, num_programs, ones, par_dim, power, private_hbm, prod, program_id, program_ndim, psum, rand, random_seed, relu, right_shift, rms_norm, rsqrt, sbuf, sequential_range, shared_constant, shared_hbm, shared_identity_matrix, sigmoid, sign, silu, silu_dx, sin, softmax, softplus, spmd_dim, sqrt, square, static_range, store, subtract, sum, tan, tanh, transpose, trunc, var, where, zeros, zeros_like
 
+[2025-03-21 19:00:07] SELECTING RELEVANT FUNCTIONS...
+[2025-03-21 19:00:08] SELECTED FUNCTIONS:
+add, load, store
 
-Here is a python implementation for it:
-
-def vector_add(v1, v2):
-    """
-    Adds two vectors element-wise using an explicit loop.
-    :param v1: List of numbers (first vector)
-    :param v2: List of numbers (second vector)
-    :return: List representing the sum of the two vectors
-    """
-    if len(v1) != len(v2):
-        raise ValueError("Vectors must be of the same length")
-    
-    result = []
-    for i in range(len(v1)):
-        result.append(v1[i] + v2[i])
-    
-    return result
-
-Don't use libnrt.so.1
-
-Make sure to return the output. Make sure to import nki: from neuronxcc import nki
-
-
-[2025-03-21 18:27:41] GENERATED QUERY:
-### Key Technical Concepts for NKI Kernel
-- NKI API integration
-- Vector operations
-- Memory management
-- Compilation best practices
-- Modular design
-- Error handling
-- Performance optimization
-
-### Specific Vector Operations to Implement
-- Element-wise addition
-- Element-wise subtraction
-- Element-wise multiplication
-- Element-wise division
-- Dot product
-- Cross product (for 3D vectors)
-
-### Custom Kernel for Vector Addition using AWS NKI
-
-```python
-from neuronxcc import nki
-
-def vector_add_kernel(v1, v2):
-    """
-    Custom kernel for adding two vectors using AWS NKI.
-    :param v1: List of numbers (first vector)
-    :param v2: List of numbers (second vector)
-    :return: List representing the sum of the two vectors
-    """
-    if len(v1) != len(v2):
-        raise ValueError("Vectors must be of the same length")
-    
-    # Initialize result vector
-    result = nki.create_vector(len(v1))
-    
-    # Perform element-wise addition
-    for i in range(len(v1)):
-        result[i] = v1[i] + v2[i]
-    
-    return result
-
-# Example usage
-v1 = [1, 2, 3]
-v2 = [4, 5, 6]
-output = vector_add_kernel(v1, v2)
-print(output)  # Output: [5, 7, 9]
-```
-
-### Notes
-- Ensure that the NKI environment is properly set up for compilation.
-- Follow modular design principles for maintainability.
-- Handle errors gracefully to avoid runtime issues.
-
-[2025-03-21 18:27:41] RETRIEVING DOCUMENTS FROM PINECONE...
-[2025-03-21 18:27:42] RETRIEVED CONTEXT:
-Doc1: No title - nki.language.add
+[2025-03-21 19:00:08] LOADING FUNCTION DOCUMENTATION...
+[2025-03-21 19:00:08] LOADED DOCUMENTATION:
+FUNCTION: add
+--------------------------------------------------
+nki.language.add
 
 Signature:
 nki.language.add(x, y, *, dtype=None, mask=None, **kwargs)
@@ -132,73 +56,10 @@ Add the inputs, element-wise.
 Parameters:
 x – a tile or a scalar value.
 y – a tile or a scalar value. x.shape and y.shape must be broadcastable to a common shape, that will become the shape of the output.
-dtype – (optional) data type to cast the output type to (see Supported Data Types for more information); if not specified, it will default to be the same as the data t...
+dtype – (optional) data type to cast the output type to (see Supported Data Types for more information...
 
-Doc2: No title - nki.language.sum
-
-Signature:
-nki.language.sum(x, axis, *, dtype=None, mask=None, keepdims=False, **kwargs)
-
-Description:
-Sum of elements along the specified axis (or axes) of the input.
-((Similar to numpy.sum))
-
-Parameters:
-x – a tile.
-axis – int or tuple/list of ints. The axis (or axes) along which to operate; must be free dimensions, not partition dimension (0); can only be the last contiguous dim(s) of the tile: [1], [1,2], [1,2,3], [1,2,3,4]
-dtype – (optional) data type to cast the output ty...
-
-Doc3: No title - nki.language.nc
-
-Signature:
-nki.language.nc = Ellipsis
-
-Description:
-Create a logical neuron core dimension in launch grid.
-The instances of spmd kernel will be distributed to different physical neuron cores on the annotated dimension.
-
-Example:
-# Let compiler decide how to distribute the instances of spmd kernel
-c = kernel[2, 2](a, b)
-
-import neuronxcc.nki.language as nl
-
-# Distribute the kernel to physical neuron cores around the first dimension
-# of the spmd grid.
-c = kernel[nl.nc(2), 2](a, b...
-
-Doc4: No title - nki.language.all_reduce
-
-Signature:
-nki.language.all_reduce(x, op, program_axes, *, dtype=None, mask=None, parallel_reduce=True, asynchronous=False, **kwargs)
-
-Description:
-Apply reduce operation over multiple SPMD programs.
-
-Parameters:
-x – a tile.
-op – numpy ALU operator to use to reduce over the input tile.
-program_axes – a single axis or a tuple of axes along which the reduction operation is performed.
-dtype – (optional) data type to cast the output type to (see Supported Data Types for more...
-
-Doc5: No title - nki.language.subtract
-
-Signature:
-nki.language.subtract(x, y, *, dtype=None, mask=None, **kwargs)
-
-Description:
-Subtract the inputs, element-wise.
-((Similar to numpy.subtract))
-
-Parameters:
-x – a tile or a scalar value.
-y – a tile or a scalar value. x.shape and y.shape must be broadcastable to a common shape, that will become the shape of the output.
-dtype – (optional) data type to cast the output type to (see Supported Data Types for more information); if not specified, it will default to be th...
-
-
-
-[2025-03-21 18:27:42] GENERATING INITIAL KERNEL...
-[2025-03-21 18:27:42] FULL PROMPT TO LLM:
+[2025-03-21 19:00:08] GENERATING INITIAL KERNEL...
+[2025-03-21 19:00:08] FULL PROMPT TO LLM:
 Human: You are a engineer at Annapurna Labs writing efficent and correct kernels.
 
 Task: Generate a custom kernel for vector addition a using AWS Neural Kernel Interface (NKI). The kernel should:
@@ -230,8 +91,10 @@ Don't use libnrt.so.1
 Make sure to return the output. Make sure to import nki: from neuronxcc import nki
 
 
-Retrieved Context:
-Doc1: No title - nki.language.add
+Function Documentation:
+FUNCTION: add
+--------------------------------------------------
+nki.language.add
 
 Signature:
 nki.language.add(x, y, *, dtype=None, mask=None, **kwargs)
@@ -243,192 +106,335 @@ Add the inputs, element-wise.
 Parameters:
 x – a tile or a scalar value.
 y – a tile or a scalar value. x.shape and y.shape must be broadcastable to a common shape, that will become the shape of the output.
-dtype – (optional) data type to cast the output type to (see Supported Data Types for more information); if not specified, it will default to be the same as the data t...
+dtype – (optional) data type to cast the output type to (see Supported Data Types for more information); if not specified, it will default to be the same as the data type of the input tiles, or whichever input type has the highest precision (see NKI Type Promotion for more information);
+mask – (optional) a compile-time constant predicate that controls whether/how this instruction is executed (see NKI API Masking for details)
 
-Doc2: No title - nki.language.sum
-
-Signature:
-nki.language.sum(x, axis, *, dtype=None, mask=None, keepdims=False, **kwargs)
-
-Description:
-Sum of elements along the specified axis (or axes) of the input.
-((Similar to numpy.sum))
-
-Parameters:
-x – a tile.
-axis – int or tuple/list of ints. The axis (or axes) along which to operate; must be free dimensions, not partition dimension (0); can only be the last contiguous dim(s) of the tile: [1], [1,2], [1,2,3], [1,2,3,4]
-dtype – (optional) data type to cast the output ty...
-
-Doc3: No title - nki.language.nc
-
-Signature:
-nki.language.nc = Ellipsis
-
-Description:
-Create a logical neuron core dimension in launch grid.
-The instances of spmd kernel will be distributed to different physical neuron cores on the annotated dimension.
+Returns:
+a tile that has x + y, element-wise.
 
 Example:
-# Let compiler decide how to distribute the instances of spmd kernel
-c = kernel[2, 2](a, b)
-
 import neuronxcc.nki.language as nl
 
-# Distribute the kernel to physical neuron cores around the first dimension
-# of the spmd grid.
-c = kernel[nl.nc(2), 2](a, b...
+a = nl.load(a_tensor[0:128, 0:512])
+b = nl.load(b_tensor[0:128, 0:512])
+# add a and b element-wise and store in c[128, 512]
+c = nl.add(a, b)
+nl.store(c_tensor[0:128, 0:512], c)
 
-Doc4: No title - nki.language.all_reduce
+a = nl.load(a_tensor[0:128, 0:512])
+b = 2.2
+# add constant b to each element in a
+c = nl.add(a, b)
+nl.store(c_tensor[0:128, 0:512], c)
+
+a = nl.load(a_tensor[0:128, 0:512])
+b = nl.load(b_tensor[0:128, 0:1])
+# broadcast on free dimension -- [128, 1] is broadcasted to [128, 512]
+c = nl.add(a, b)
+nl.store(c_tensor[0:128, 0:512], c)
+
+a = nl.load(a_tensor[0:128, 0:512])
+b = nl.load(b_tensor[0:1, 0:512])
+# broadcast on partition dimension -- [1, 512] is broadcasted to [128, 512]
+c = nl.add(a, b)
+nl.store(c_tensor[0:128, 0:512], c)
+
+a = nl.load(a_tensor[0:128, 0:512])
+b = nl.load(b_tensor[0:1, 0:1])
+# broadcast on both dimensions -- [1, 1] is broadcasted to [128, 512]
+c = nl.add(a, b)
+nl.store(c_tensor[0:128, 0:512], c)
+
+a = nl.load(a_tensor[0:128, 0:1])
+b = nl.load(b_tensor[0:1, 0:512])
+# broadcast on each dimensions -- [128, 1] and [1, 512] are broadcasted to [128, 512]
+c = nl.add(a, b)
+nl.store(c_tensor[0:128, 0:512], c)
+
+Note:
+Broadcasting in the partition dimension is generally more expensive than broadcasting in free dimension. It is recommended to align your data to perform free dimension broadcast whenever possible.
+
+================================================================================
+
+FUNCTION: load
+--------------------------------------------------
+nki.language.load
 
 Signature:
-nki.language.all_reduce(x, op, program_axes, *, dtype=None, mask=None, parallel_reduce=True, asynchronous=False, **kwargs)
+nki.language.load(src, *, mask=None, dtype=None, **kwargs)
 
 Description:
-Apply reduce operation over multiple SPMD programs.
+Load a tensor from device memory (HBM) into on-chip memory (SBUF).
+See Memory hierarchy for detailed information.
 
 Parameters:
-x – a tile.
-op – numpy ALU operator to use to reduce over the input tile.
-program_axes – a single axis or a tuple of axes along which the reduction operation is performed.
-dtype – (optional) data type to cast the output type to (see Supported Data Types for more...
+src – HBM tensor to load the data from.
+mask – (optional) a compile-time constant predicate that controls whether/how this instruction is executed (see NKI API Masking for details)
+dtype – (optional) data type to cast the output type to (see Supported Data Types for more information); if not specified, it will default to be the same as the data type of the input tile.
 
-Doc5: No title - nki.language.subtract
+Returns:
+a new tile on SBUF with values from src.
+
+Example:
+import neuronxcc.nki.language as nl
+
+# load from in_tensor[P, F] that is on HBM
+# copy into data_tile[P, F] that is on SBUF
+data_tile = nl.load(in_tensor)
+...
+
+Note:
+Partition dimension size can’t exceed the hardware limitation of nki.language.tile_size.pmax, see Tile size considerations.
+Partition dimension has to be the first dimension in the index tuple of a tile. Therefore, data may need to be split into multiple batches to load/store, for example:
+import neuronxcc.nki.language as nl
+
+for i_b in nl.affine_range(4):
+  data_tile = nl.zeros((128, 512), dtype=in_tensor.dtype) 
+  # load from in_tensor[4, 128, 512] one batch at a time
+  # copy into data_tile[128, 512]
+  i_p, i_f = nl.mgrid[0:128, 0:512]
+  data_tile[i_p, i_f] = nl.load(in_tensor[i_b, i_p, i_f])
+  ...
+
+Also supports indirect DMA access with dynamic index values:
+import neuronxcc.nki.language as nl
+...
+
+
+############################################################################################
+# Indirect DMA read example 1:
+# - data_tensor on HBM has shape [128 x 512].
+# - idx_tensor on HBM has shape [64] (with values [0, 2, 4, 6, ...]).
+# - idx_tensor values read from HBM and stored in SBUF idx_tile of shape [64 x 1]
+# - data_tensor values read from HBM indexed by values in idx_tile 
+#   and store into SBUF data_tile of shape [64 x 512].
+############################################################################################
+i_p = nl.arange(64)[:, None]
+i_f = nl.arange(512)[None, :]
+
+idx_tile = nl.load(idx_tensor[i_p]) # indices have to be in SBUF
+data_tile = nl.load(data_tensor[idx_tile[i_p, 0], i_f]) 
+...
+import neuronxcc.nki.isa as nisa
+import neuronxcc.nki.language as nl
+...
+
+
+############################################################################################
+# Indirect DMA read example 2:
+# - data_tensor on HBM has shape [128 x 512].
+# - idx_tile on SBUF has shape [64 x 1] (with values [[0], [2], [4], ...] generated by iota)
+# - data_tensor values read from HBM indexed by values in idx_tile 
+#   and store into SBUF data_tile of shape [64 x 512].
+############################################################################################
+i_f = nl.arange(512)[None, :]
+
+idx_expr = 2*nl.arange(64)[:, None]
+idx_tile = nisa.iota(idx_expr, dtype=np.int32)
+data_tile = nl.load(data_tensor[idx_tile, i_f]) 
+...
+
+================================================================================
+
+FUNCTION: store
+--------------------------------------------------
+nki.language.store
 
 Signature:
-nki.language.subtract(x, y, *, dtype=None, mask=None, **kwargs)
+nki.language.store(dst, value, *, mask=None, **kwargs)
 
 Description:
-Subtract the inputs, element-wise.
-((Similar to numpy.subtract))
+Store into a tensor on device memory (HBM) from on-chip memory (SBUF).
+See Memory hierarchy for detailed information.
 
 Parameters:
-x – a tile or a scalar value.
-y – a tile or a scalar value. x.shape and y.shape must be broadcastable to a common shape, that will become the shape of the output.
-dtype – (optional) data type to cast the output type to (see Supported Data Types for more information); if not specified, it will default to be th...
+dst – HBM tensor to store the data into.
+value – An SBUF tile that contains the values to store.
+mask – (optional) a compile-time constant predicate that controls whether/how this instruction is executed (see NKI API Masking for details)
 
+Returns:
+none
+
+Example:
+import neuronxcc.nki.language as nl
+
+...
+# store into out_tensor[P, F] that is on HBM
+# from data_tile[P, F] that is on SBUF
+nl.store(out_tensor, data_tile)
+
+Note:
+Partition dimension size can’t exceed the hardware limitation of nki.language.tile_size.pmax, see Tile size considerations.
+Partition dimension has to be the first dimension in the index tuple of a tile. Therefore, data may need to be split into multiple batches to load/store, for example:
+import neuronxcc.nki.language as nl
+
+for i_b in nl.affine_range(4):
+  data_tile = nl.zeros((128, 512), dtype=in_tensor.dtype) 
+
+...
+# store into out_tensor[4, 128, 512] one batch at a time
+# from data_tile[128, 512] 
+i_p, i_f = nl.mgrid[0:128, 0:512]
+nl.store(out_tensor[i_b, i_p, i_f], value=data_tile[i_p, i_f]) 
+
+Also supports indirect DMA access with dynamic index values:
+import neuronxcc.nki.language as nl
+...
+
+
+##################################################################################
+# Indirect DMA write example 1:
+#  - data_tensor has shape [128 x 512].
+#  - idx_tensor on HBM has shape [64] (with values [0, 2, 4, 6, ...]).
+#  - idx_tensor values read from HBM and stored in SBUF idx_tile.
+#  - data_tile of shape [64 x 512] values written into
+#    HBM data_tensor indexed by values in idx_tile.
+##################################################################################
+i_p = nl.arange(64)[:, None]
+i_f = nl.arange(512)[None, :]
+idx_tile = nl.load(idx_tensor[i_p]) # indices have to be in SB
+
+nl.store(data_tensor[idx_tile[i_p, 0], i_f], value=data_tile[0:64, 0:512])
+import neuronxcc.nki.isa as nisa
+import neuronxcc.nki.language as nl
+...
+
+
+#############################################################################################
+# Indirect DMA write example 2:
+#  - data_tensor has shape [128 x 512].
+#  - idx_tile on SBUF has shape [64 x 1] (with values [[0], [2], [4], ...] generated by iota)
+#  - data_tile of shape [64 x 512] values written into
+#    HBM data_tensor indexed by values in idx_tile.
+#############################################################################################
+idx_expr = 2*nl.arange(64)[:, None]
+idx_tile = nisa.iota(idx_expr, dtype=np.int32)
+
+nl.store(data_tensor[idx_tile, i_f], value=data_tile[0:64, 0:512])
+
+================================================================================
 
 
 Generate a NKI kernel for the task.
 
-[2025-03-21 18:27:52] LLM RESPONSE:
-Here's a well-structured and modular implementation of a vector addition kernel using the AWS Neural Kernel Interface (NKI). This implementation will leverage the NKI API to perform efficient element-wise addition of two vectors.
+[2025-03-21 19:00:21] LLM RESPONSE:
+Below is a well-structured and modular implementation of a vector addition kernel using the AWS Neural Kernel Interface (NKI). This code follows best practices for compilation and efficiently performs element-wise addition of two vectors.
+
+### Vector Addition Kernel using NKI
 
 ```python
-# Import the necessary NKI modules
+# Importing necessary NKI modules
 from neuronxcc import nki
+import neuronxcc.nki.language as nl
 
-# Define the vector addition kernel
-def vector_add_kernel(a, b):
+def vector_addition_kernel(a_tensor, b_tensor, c_tensor, vector_shape):
     """
-    Kernel function to perform element-wise addition of two vectors.
+    Vector addition kernel using NKI for element-wise addition of two tensors.
+
+    :param a_tensor: Input tensor for the first vector (on HBM)
+    :param b_tensor: Input tensor for the second vector (on HBM)
+    :param c_tensor: Output tensor for storing the result (on HBM)
+    :param vector_shape: Tuple representing the shape of the vectors
+    """
     
-    :param a: First input vector (tile)
-    :param b: Second input vector (tile)
-    :return: Resulting vector (tile) after addition
-    """
-    # Use the NKI's add function to perform element-wise addition
-    result = nki.language.add(a, b)
-    return result
-
-# Define a function to launch the kernel
-def launch_vector_add_kernel(v1, v2):
-    """
-    Launches the vector addition kernel on the provided input vectors.
+    # Ensure that the vector dimensions are valid for addition
+    assert len(vector_shape) == 2, "Vector shape must be 2-dimensional (e.g., [N, M])."
     
-    :param v1: First input vector (list or array)
-    :param v2: Second input vector (list or array)
-    :return: Resulting vector after addition
-    """
-    if len(v1) != len(v2):
-        raise ValueError("Vectors must be of the same length")
+    # Define the partition dimensions
+    batch_size = vector_shape[0]
+    feature_size = vector_shape[1]
 
-    # Convert input lists to tiles
-    tile_a = nki.tile(v1)
-    tile_b = nki.tile(v2)
-
-    # Launch the kernel
-    result_tile = vector_add_kernel(tile_a, tile_b)
-
-    # Convert the result tile back to a list and return
-    return result_tile.to_list()
+    # Process the vector addition in batches
+    for i_b in nl.affine_range(batch_size):
+        # Load tensors from HBM to SBUF
+        a_tile = nl.load(a_tensor[i_b, :])
+        b_tile = nl.load(b_tensor[i_b, :])
+        
+        # Perform element-wise addition
+        c_tile = nl.add(a_tile, b_tile)
+        
+        # Store the result back to HBM
+        nl.store(c_tensor[i_b, :], c_tile)
 
 # Example usage
 if __name__ == "__main__":
-    v1 = [1, 2, 3, 4]
-    v2 = [5, 6, 7, 8]
+    # Placeholder for tensor shapes and HBM memory allocation
+    # a_tensor, b_tensor, c_tensor should be defined and allocated in HBM
 
-    result = launch_vector_add_kernel(v1, v2)
-    print("Result of vector addition:", result)
+    # Assuming `a_tensor`, `b_tensor`, and `c_tensor` are allocated in HBM
+    # and their shapes are compatible for addition
+    vector_shape = (128, 512)  # Example shape
+    vector_addition_kernel(a_tensor, b_tensor, c_tensor, vector_shape)
 ```
 
-### Explanation of the Implementation:
-1. **Importing NKI**: We start by importing the NKI module necessary for our kernel operations.
-
-2. **Kernel Function (`vector_add_kernel`)**: This function takes two input tiles (representing the vectors) and uses the `nki.language.add` function to perform element-wise addition. It returns the resulting tile.
-
-3. **Launch Function (`launch_vector_add_kernel`)**: This function serves as an interface to launch the kernel. It checks that the two input vectors have the same length, converts them to tiles, then calls the kernel function and converts the result back to a list for easy use.
-
-4. **Main Block**: An example usage section illustrates how to use the launch function, showing that the kernel can be run with two sample vectors.
+### Explanation of the Code:
+- **Imports**: The necessary modules from `neuronxcc` are imported for NKI operations.
+- **Function Definition**: 
+  - `vector_addition_kernel` is defined to encapsulate the logic for vector addition.
+  - It takes input tensors `a_tensor` and `b_tensor`, as well as an output tensor `c_tensor`, along with their shape.
+- **Assertions**: An assertion checks that the vector shape is two-dimensional to ensure valid operations.
+- **Batch Processing**: The addition is performed in batches using a loop that iterates over the first dimension of the vector:
+  - **Loading Tensors**: The input tensors are loaded from HBM into on-chip memory (SBUF).
+  - **Element-wise Addition**: The `nl.add` operation performs the addition on the loaded tiles.
+  - **Storing Result**: The result is stored back into HBM using `nl.store`.
+- **Example Usage**: A placeholder for how the tensors might be used in an actual application is provided.
 
 ### Best Practices Followed:
-- **Input Validation**: The implementation checks that the input vectors are of the same length before proceeding with the addition.
-- **Modularity**: The kernel and the launch logic are separated into distinct functions, which enhances readability and maintainability.
-- **Conversion to and from Tiles**: The kernel works directly with tiles which are optimized for performance in the NKI environment.
+- **Modularity**: The function is defined separately to allow for easy reuse and testing.
+- **Assertions**: Basic input validation is done using assertions to catch potential issues early.
+- **Batch Processing**: The implementation processes data in batches to conform with NKI's memory management practices.
 
-This setup allows for efficient vector addition while maintaining clarity and modularity in the code structure.
+This kernel is ready for integration into a larger system or for further optimization based on specific hardware characteristics and performance requirements.
 
-[2025-03-21 18:27:52] EXTRACTED KERNEL CODE:
-# Import the necessary NKI modules
+[2025-03-21 19:00:21] EXTRACTED KERNEL CODE:
+# Importing necessary NKI modules
 from neuronxcc import nki
+import neuronxcc.nki.language as nl
 
-# Define the vector addition kernel
-def vector_add_kernel(a, b):
+def vector_addition_kernel(a_tensor, b_tensor, c_tensor, vector_shape):
     """
-    Kernel function to perform element-wise addition of two vectors.
+    Vector addition kernel using NKI for element-wise addition of two tensors.
+
+    :param a_tensor: Input tensor for the first vector (on HBM)
+    :param b_tensor: Input tensor for the second vector (on HBM)
+    :param c_tensor: Output tensor for storing the result (on HBM)
+    :param vector_shape: Tuple representing the shape of the vectors
+    """
     
-    :param a: First input vector (tile)
-    :param b: Second input vector (tile)
-    :return: Resulting vector (tile) after addition
-    """
-    # Use the NKI's add function to perform element-wise addition
-    result = nki.language.add(a, b)
-    return result
-
-# Define a function to launch the kernel
-def launch_vector_add_kernel(v1, v2):
-    """
-    Launches the vector addition kernel on the provided input vectors.
+    # Ensure that the vector dimensions are valid for addition
+    assert len(vector_shape) == 2, "Vector shape must be 2-dimensional (e.g., [N, M])."
     
-    :param v1: First input vector (list or array)
-    :param v2: Second input vector (list or array)
-    :return: Resulting vector after addition
-    """
-    if len(v1) != len(v2):
-        raise ValueError("Vectors must be of the same length")
+    # Define the partition dimensions
+    batch_size = vector_shape[0]
+    feature_size = vector_shape[1]
 
-    # Convert input lists to tiles
-    tile_a = nki.tile(v1)
-    tile_b = nki.tile(v2)
-
-    # Launch the kernel
-    result_tile = vector_add_kernel(tile_a, tile_b)
-
-    # Convert the result tile back to a list and return
-    return result_tile.to_list()
+    # Process the vector addition in batches
+    for i_b in nl.affine_range(batch_size):
+        # Load tensors from HBM to SBUF
+        a_tile = nl.load(a_tensor[i_b, :])
+        b_tile = nl.load(b_tensor[i_b, :])
+        
+        # Perform element-wise addition
+        c_tile = nl.add(a_tile, b_tile)
+        
+        # Store the result back to HBM
+        nl.store(c_tensor[i_b, :], c_tile)
 
 # Example usage
 if __name__ == "__main__":
-    v1 = [1, 2, 3, 4]
-    v2 = [5, 6, 7, 8]
+    # Placeholder for tensor shapes and HBM memory allocation
+    # a_tensor, b_tensor, c_tensor should be defined and allocated in HBM
 
-    result = launch_vector_add_kernel(v1, v2)
-    print("Result of vector addition:", result)
+    # Assuming `a_tensor`, `b_tensor`, and `c_tensor` are allocated in HBM
+    # and their shapes are compatible for addition
+    vector_shape = (128, 512)  # Example shape
+    vector_addition_kernel(a_tensor, b_tensor, c_tensor, vector_shape)
 
-[2025-03-21 18:27:52] 
+[2025-03-21 19:00:21] 
 === ITERATION 1 ===
 
-[2025-03-21 18:27:52] RUNNING TEST SCRIPT: /Users/rgopalam/Desktop/AWS-NKI/torch2nki/evaluation/samples/test_vector_add.py
-[2025-03-21 18:27:52] TEST SCRIPT OUTPUT:
+[2025-03-21 19:00:21] RUNNING TEST SCRIPT: /Users/rgopalam/Desktop/AWS-NKI/torch2nki/evaluation/samples/test_vector_add.py
+[2025-03-21 19:00:21] TEST SCRIPT OUTPUT:
 
 Traceback (most recent call last):
   File "/Users/rgopalam/Desktop/AWS-NKI/torch2nki/evaluation/samples/test_vector_add.py", line 2, in <module>
@@ -436,237 +442,64 @@ Traceback (most recent call last):
 ModuleNotFoundError: No module named 'torch'
 
 
-[2025-03-21 18:27:52] PARSED ERROR DOCUMENTATION:
+[2025-03-21 19:00:21] PARSED ERROR DOCUMENTATION:
 No documented errors found in the output.
 
-[2025-03-21 18:27:52] PERFORMING RAG RETRIEVAL FOR ITERATION 1...
-[2025-03-21 18:27:52] GENERATING RETRIEVAL QUERY...
-[2025-03-21 18:27:52] COMBINED PROMPT FOR QUERY:
-Generate a custom kernel for vector addition a using AWS Neural Kernel Interface (NKI). The kernel should:
-- Use the proper NKI API integration.
-- Follow best practices for compilation.
-- Be well-structured, modular, and maintainable.
-
-
-Here is a python implementation for it:
-
-def vector_add(v1, v2):
-    """
-    Adds two vectors element-wise using an explicit loop.
-    :param v1: List of numbers (first vector)
-    :param v2: List of numbers (second vector)
-    :return: List representing the sum of the two vectors
-    """
-    if len(v1) != len(v2):
-        raise ValueError("Vectors must be of the same length")
-    
-    result = []
-    for i in range(len(v1)):
-        result.append(v1[i] + v2[i])
-    
-    return result
-
-Don't use libnrt.so.1
-
-Make sure to return the output. Make sure to import nki: from neuronxcc import nki
-
-
-Additional context - Error encountered: 
-Traceback (most recent call last):
-  File "/Users/rgopalam/Desktop/AWS-NKI/torch2nki/evaluation/samples/test_vector_add.py", line 2, in <module>
-    import torch
-ModuleNotFoundError: No module named ...
-
-[2025-03-21 18:27:58] GENERATED QUERY:
-### Key Technical Concepts for NKI Kernel
-
-- **NKI API Integration**: Use the NKI framework to define and manage kernels.
-- **Kernel Compilation**: Follow best practices for compiling kernels to ensure efficiency and compatibility.
-- **Modular Design**: Structure code into reusable functions for maintainability.
-- **Vector Operations**: Implement operations like addition, subtraction, multiplication, and dot product.
-- **Error Handling**: Ensure robust error handling for input validation.
-- **Performance Optimization**: Optimize for speed and memory usage.
-
-### Specific Vector Operations to Implement
-
-- Element-wise addition
-- Element-wise subtraction
-- Element-wise multiplication
-- Dot product
-- Scalar multiplication
-- Vector normalization
-
-### Custom Kernel for Vector Addition Using AWS NKI
-
-```python
-from neuronxcc import nki
-
-def vector_add_kernel(v1, v2):
-    """
-    Custom kernel for adding two vectors element-wise using NKI.
-    :param v1: List of numbers (first vector)
-    :param v2: List of numbers (second vector)
-    :return: List representing the sum of the two vectors
-    """
-    if len(v1) != len(v2):
-        raise ValueError("Vectors must be of the same length")
-    
-    # Initialize result vector
-    result = nki.create_vector(len(v1))
-
-    # Define the kernel function
-    @nki.kernel
-    def add_vectors(v1, v2, result):
-        for i in range(len(v1)):
-            result[i] = v1[i] + v2[i]
-
-    # Execute the kernel
-    add_vectors(v1, v2, result)
-
-    return result
-
-# Example usage
-v1 = [1, 2, 3]
-v2 = [4, 5, 6]
-output = vector_add_kernel(v1, v2)
-print(output)  # Should print: [5, 7, 9]
+[2025-03-21 19:00:22] ADDITIONAL FUNCTIONS RESPONSE:
+```json
+[]
 ```
 
-### Notes:
-- Ensure the NKI environment is correctly set up to avoid module import errors.
-- The kernel function `add_vectors` is defined within the `vector_add_kernel` function to encapsulate its logic.
-- The result is created using `nki.create_vector` for compatibility with NKI operations.
+[2025-03-21 19:00:22] ERROR PARSING ADDITIONAL FUNCTIONS: Expecting value: line 1 column 1 (char 0)
 
-[2025-03-21 18:27:58] RETRIEVING DOCUMENTS FROM PINECONE...
-[2025-03-21 18:27:59] RETRIEVED CONTEXT:
-Doc1: No title - nki.language.add
-
-Signature:
-nki.language.add(x, y, *, dtype=None, mask=None, **kwargs)
-
-Description:
-Add the inputs, element-wise.
-((Similar to numpy.add))
-
-Parameters:
-x – a tile or a scalar value.
-y – a tile or a scalar value. x.shape and y.shape must be broadcastable to a common shape, that will become the shape of the output.
-dtype – (optional) data type to cast the output type to (see Supported Data Types for more information); if not specified, it will default to be the same as the data t...
-
-Doc2: No title - nki.language.sum
-
-Signature:
-nki.language.sum(x, axis, *, dtype=None, mask=None, keepdims=False, **kwargs)
-
-Description:
-Sum of elements along the specified axis (or axes) of the input.
-((Similar to numpy.sum))
-
-Parameters:
-x – a tile.
-axis – int or tuple/list of ints. The axis (or axes) along which to operate; must be free dimensions, not partition dimension (0); can only be the last contiguous dim(s) of the tile: [1], [1,2], [1,2,3], [1,2,3,4]
-dtype – (optional) data type to cast the output ty...
-
-Doc3: No title - nki.language.nc
-
-Signature:
-nki.language.nc = Ellipsis
-
-Description:
-Create a logical neuron core dimension in launch grid.
-The instances of spmd kernel will be distributed to different physical neuron cores on the annotated dimension.
-
-Example:
-# Let compiler decide how to distribute the instances of spmd kernel
-c = kernel[2, 2](a, b)
-
-import neuronxcc.nki.language as nl
-
-# Distribute the kernel to physical neuron cores around the first dimension
-# of the spmd grid.
-c = kernel[nl.nc(2), 2](a, b...
-
-Doc4: No title - nki.language.subtract
-
-Signature:
-nki.language.subtract(x, y, *, dtype=None, mask=None, **kwargs)
-
-Description:
-Subtract the inputs, element-wise.
-((Similar to numpy.subtract))
-
-Parameters:
-x – a tile or a scalar value.
-y – a tile or a scalar value. x.shape and y.shape must be broadcastable to a common shape, that will become the shape of the output.
-dtype – (optional) data type to cast the output type to (see Supported Data Types for more information); if not specified, it will default to be th...
-
-Doc5: No title - nki.language.all_reduce
-
-Signature:
-nki.language.all_reduce(x, op, program_axes, *, dtype=None, mask=None, parallel_reduce=True, asynchronous=False, **kwargs)
-
-Description:
-Apply reduce operation over multiple SPMD programs.
-
-Parameters:
-x – a tile.
-op – numpy ALU operator to use to reduce over the input tile.
-program_axes – a single axis or a tuple of axes along which the reduction operation is performed.
-dtype – (optional) data type to cast the output type to (see Supported Data Types for more...
-
-
-
-[2025-03-21 18:27:59] GENERATING IMPROVED KERNEL (ITERATION 1)...
-[2025-03-21 18:27:59] FULL ERROR PROMPT TO LLM:
+[2025-03-21 19:00:22] GENERATING IMPROVED KERNEL (ITERATION 1)...
+[2025-03-21 19:00:22] FULL ERROR PROMPT TO LLM:
 Human: You are a engineer at Annapurna Labs writing efficent and correct kernels.
 
 Here is the kernel you just wrote:
 --------------------------------------------------
-# Import the necessary NKI modules
+# Importing necessary NKI modules
 from neuronxcc import nki
+import neuronxcc.nki.language as nl
 
-# Define the vector addition kernel
-def vector_add_kernel(a, b):
+def vector_addition_kernel(a_tensor, b_tensor, c_tensor, vector_shape):
     """
-    Kernel function to perform element-wise addition of two vectors.
+    Vector addition kernel using NKI for element-wise addition of two tensors.
+
+    :param a_tensor: Input tensor for the first vector (on HBM)
+    :param b_tensor: Input tensor for the second vector (on HBM)
+    :param c_tensor: Output tensor for storing the result (on HBM)
+    :param vector_shape: Tuple representing the shape of the vectors
+    """
     
-    :param a: First input vector (tile)
-    :param b: Second input vector (tile)
-    :return: Resulting vector (tile) after addition
-    """
-    # Use the NKI's add function to perform element-wise addition
-    result = nki.language.add(a, b)
-    return result
-
-# Define a function to launch the kernel
-def launch_vector_add_kernel(v1, v2):
-    """
-    Launches the vector addition kernel on the provided input vectors.
+    # Ensure that the vector dimensions are valid for addition
+    assert len(vector_shape) == 2, "Vector shape must be 2-dimensional (e.g., [N, M])."
     
-    :param v1: First input vector (list or array)
-    :param v2: Second input vector (list or array)
-    :return: Resulting vector after addition
-    """
-    if len(v1) != len(v2):
-        raise ValueError("Vectors must be of the same length")
+    # Define the partition dimensions
+    batch_size = vector_shape[0]
+    feature_size = vector_shape[1]
 
-    # Convert input lists to tiles
-    tile_a = nki.tile(v1)
-    tile_b = nki.tile(v2)
-
-    # Launch the kernel
-    result_tile = vector_add_kernel(tile_a, tile_b)
-
-    # Convert the result tile back to a list and return
-    return result_tile.to_list()
+    # Process the vector addition in batches
+    for i_b in nl.affine_range(batch_size):
+        # Load tensors from HBM to SBUF
+        a_tile = nl.load(a_tensor[i_b, :])
+        b_tile = nl.load(b_tensor[i_b, :])
+        
+        # Perform element-wise addition
+        c_tile = nl.add(a_tile, b_tile)
+        
+        # Store the result back to HBM
+        nl.store(c_tensor[i_b, :], c_tile)
 
 # Example usage
 if __name__ == "__main__":
-    v1 = [1, 2, 3, 4]
-    v2 = [5, 6, 7, 8]
+    # Placeholder for tensor shapes and HBM memory allocation
+    # a_tensor, b_tensor, c_tensor should be defined and allocated in HBM
 
-    result = launch_vector_add_kernel(v1, v2)
-    print("Result of vector addition:", result)
+    # Assuming `a_tensor`, `b_tensor`, and `c_tensor` are allocated in HBM
+    # and their shapes are compatible for addition
+    vector_shape = (128, 512)  # Example shape
+    vector_addition_kernel(a_tensor, b_tensor, c_tensor, vector_shape)
 --------------------------------------------------
 
 Here is the error message it got:
@@ -684,10 +517,11 @@ Here is detailed documentation about the specific errors encountered:
 No specific documentation found for the errors in the output. Please analyze the error message carefully.
 --------------------------------------------------
 
-Try to fix it. Clearly explain your line of reasoning as well as what you think the error is, and how you plan to fix it. Clearly put your initial reasoning inside triple stars like this *** example: i am making this change because i love unicorns ***. I want all your initial reasoning inside of these triple stars, not just the summary at the end.
-
-Retrieved Context:
-Doc1: No title - nki.language.add
+Function Documentation:
+--------------------------------------------------
+FUNCTION: add
+--------------------------------------------------
+nki.language.add
 
 Signature:
 nki.language.add(x, y, *, dtype=None, mask=None, **kwargs)
@@ -699,196 +533,248 @@ Add the inputs, element-wise.
 Parameters:
 x – a tile or a scalar value.
 y – a tile or a scalar value. x.shape and y.shape must be broadcastable to a common shape, that will become the shape of the output.
-dtype – (optional) data type to cast the output type to (see Supported Data Types for more information); if not specified, it will default to be the same as the data t...
+dtype – (optional) data type to cast the output type to (see Supported Data Types for more information); if not specified, it will default to be the same as the data type of the input tiles, or whichever input type has the highest precision (see NKI Type Promotion for more information);
+mask – (optional) a compile-time constant predicate that controls whether/how this instruction is executed (see NKI API Masking for details)
 
-Doc2: No title - nki.language.sum
-
-Signature:
-nki.language.sum(x, axis, *, dtype=None, mask=None, keepdims=False, **kwargs)
-
-Description:
-Sum of elements along the specified axis (or axes) of the input.
-((Similar to numpy.sum))
-
-Parameters:
-x – a tile.
-axis – int or tuple/list of ints. The axis (or axes) along which to operate; must be free dimensions, not partition dimension (0); can only be the last contiguous dim(s) of the tile: [1], [1,2], [1,2,3], [1,2,3,4]
-dtype – (optional) data type to cast the output ty...
-
-Doc3: No title - nki.language.nc
-
-Signature:
-nki.language.nc = Ellipsis
-
-Description:
-Create a logical neuron core dimension in launch grid.
-The instances of spmd kernel will be distributed to different physical neuron cores on the annotated dimension.
+Returns:
+a tile that has x + y, element-wise.
 
 Example:
-# Let compiler decide how to distribute the instances of spmd kernel
-c = kernel[2, 2](a, b)
-
 import neuronxcc.nki.language as nl
 
-# Distribute the kernel to physical neuron cores around the first dimension
-# of the spmd grid.
-c = kernel[nl.nc(2), 2](a, b...
+a = nl.load(a_tensor[0:128, 0:512])
+b = nl.load(b_tensor[0:128, 0:512])
+# add a and b element-wise and store in c[128, 512]
+c = nl.add(a, b)
+nl.store(c_tensor[0:128, 0:512], c)
 
-Doc4: No title - nki.language.subtract
+a = nl.load(a_tensor[0:128, 0:512])
+b = 2.2
+# add constant b to each element in a
+c = nl.add(a, b)
+nl.store(c_tensor[0:128, 0:512], c)
+
+a = nl.load(a_tensor[0:128, 0:512])
+b = nl.load(b_tensor[0:128, 0:1])
+# broadcast on free dimension -- [128, 1] is broadcasted to [128, 512]
+c = nl.add(a, b)
+nl.store(c_tensor[0:128, 0:512], c)
+
+a = nl.load(a_tensor[0:128, 0:512])
+b = nl.load(b_tensor[0:1, 0:512])
+# broadcast on partition dimension -- [1, 512] is broadcasted to [128, 512]
+c = nl.add(a, b)
+nl.store(c_tensor[0:128, 0:512], c)
+
+a = nl.load(a_tensor[0:128, 0:512])
+b = nl.load(b_tensor[0:1, 0:1])
+# broadcast on both dimensions -- [1, 1] is broadcasted to [128, 512]
+c = nl.add(a, b)
+nl.store(c_tensor[0:128, 0:512], c)
+
+a = nl.load(a_tensor[0:128, 0:1])
+b = nl.load(b_tensor[0:1, 0:512])
+# broadcast on each dimensions -- [128, 1] and [1, 512] are broadcasted to [128, 512]
+c = nl.add(a, b)
+nl.store(c_tensor[0:128, 0:512], c)
+
+Note:
+Broadcasting in the partition dimension is generally more expensive than broadcasting in free dimension. It is recommended to align your data to perform free dimension broadcast whenever possible.
+
+================================================================================
+
+FUNCTION: load
+--------------------------------------------------
+nki.language.load
 
 Signature:
-nki.language.subtract(x, y, *, dtype=None, mask=None, **kwargs)
+nki.language.load(src, *, mask=None, dtype=None, **kwargs)
 
 Description:
-Subtract the inputs, element-wise.
-((Similar to numpy.subtract))
+Load a tensor from device memory (HBM) into on-chip memory (SBUF).
+See Memory hierarchy for detailed information.
 
 Parameters:
-x – a tile or a scalar value.
-y – a tile or a scalar value. x.shape and y.shape must be broadcastable to a common shape, that will become the shape of the output.
-dtype – (optional) data type to cast the output type to (see Supported Data Types for more information); if not specified, it will default to be th...
+src – HBM tensor to load the data from.
+mask – (optional) a compile-time constant predicate that controls whether/how this instruction is executed (see NKI API Masking for details)
+dtype – (optional) data type to cast the output type to (see Supported Data Types for more information); if not specified, it will default to be the same as the data type of the input tile.
 
-Doc5: No title - nki.language.all_reduce
+Returns:
+a new tile on SBUF with values from src.
+
+Example:
+import neuronxcc.nki.language as nl
+
+# load from in_tensor[P, F] that is on HBM
+# copy into data_tile[P, F] that is on SBUF
+data_tile = nl.load(in_tensor)
+...
+
+Note:
+Partition dimension size can’t exceed the hardware limitation of nki.language.tile_size.pmax, see Tile size considerations.
+Partition dimension has to be the first dimension in the index tuple of a tile. Therefore, data may need to be split into multiple batches to load/store, for example:
+import neuronxcc.nki.language as nl
+
+for i_b in nl.affine_range(4):
+  data_tile = nl.zeros((128, 512), dtype=in_tensor.dtype) 
+  # load from in_tensor[4, 128, 512] one batch at a time
+  # copy into data_tile[128, 512]
+  i_p, i_f = nl.mgrid[0:128, 0:512]
+  data_tile[i_p, i_f] = nl.load(in_tensor[i_b, i_p, i_f])
+  ...
+
+Also supports indirect DMA access with dynamic index values:
+import neuronxcc.nki.language as nl
+...
+
+
+############################################################################################
+# Indirect DMA read example 1:
+# - data_tensor on HBM has shape [128 x 512].
+# - idx_tensor on HBM has shape [64] (with values [0, 2, 4, 6, ...]).
+# - idx_tensor values read from HBM and stored in SBUF idx_tile of shape [64 x 1]
+# - data_tensor values read from HBM indexed by values in idx_tile 
+#   and store into SBUF data_tile of shape [64 x 512].
+############################################################################################
+i_p = nl.arange(64)[:, None]
+i_f = nl.arange(512)[None, :]
+
+idx_tile = nl.load(idx_tensor[i_p]) # indices have to be in SBUF
+data_tile = nl.load(data_tensor[idx_tile[i_p, 0], i_f]) 
+...
+import neuronxcc.nki.isa as nisa
+import neuronxcc.nki.language as nl
+...
+
+
+############################################################################################
+# Indirect DMA read example 2:
+# - data_tensor on HBM has shape [128 x 512].
+# - idx_tile on SBUF has shape [64 x 1] (with values [[0], [2], [4], ...] generated by iota)
+# - data_tensor values read from HBM indexed by values in idx_tile 
+#   and store into SBUF data_tile of shape [64 x 512].
+############################################################################################
+i_f = nl.arange(512)[None, :]
+
+idx_expr = 2*nl.arange(64)[:, None]
+idx_tile = nisa.iota(idx_expr, dtype=np.int32)
+data_tile = nl.load(data_tensor[idx_tile, i_f]) 
+...
+
+================================================================================
+
+FUNCTION: store
+--------------------------------------------------
+nki.language.store
 
 Signature:
-nki.language.all_reduce(x, op, program_axes, *, dtype=None, mask=None, parallel_reduce=True, asynchronous=False, **kwargs)
+nki.language.store(dst, value, *, mask=None, **kwargs)
 
 Description:
-Apply reduce operation over multiple SPMD programs.
+Store into a tensor on device memory (HBM) from on-chip memory (SBUF).
+See Memory hierarchy for detailed information.
 
 Parameters:
-x – a tile.
-op – numpy ALU operator to use to reduce over the input tile.
-program_axes – a single axis or a tuple of axes along which the reduction operation is performed.
-dtype – (optional) data type to cast the output type to (see Supported Data Types for more...
+dst – HBM tensor to store the data into.
+value – An SBUF tile that contains the values to store.
+mask – (optional) a compile-time constant predicate that controls whether/how this instruction is executed (see NKI API Masking for details)
+
+Returns:
+none
+
+Example:
+import neuronxcc.nki.language as nl
+
+...
+# store into out_tensor[P, F] that is on HBM
+# from data_tile[P, F] that is on SBUF
+nl.store(out_tensor, data_tile)
+
+Note:
+Partition dimension size can’t exceed the hardware limitation of nki.language.tile_size.pmax, see Tile size considerations.
+Partition dimension has to be the first dimension in the index tuple of a tile. Therefore, data may need to be split into multiple batches to load/store, for example:
+import neuronxcc.nki.language as nl
+
+for i_b in nl.affine_range(4):
+  data_tile = nl.zeros((128, 512), dtype=in_tensor.dtype) 
+
+...
+# store into out_tensor[4, 128, 512] one batch at a time
+# from data_tile[128, 512] 
+i_p, i_f = nl.mgrid[0:128, 0:512]
+nl.store(out_tensor[i_b, i_p, i_f], value=data_tile[i_p, i_f]) 
+
+Also supports indirect DMA access with dynamic index values:
+import neuronxcc.nki.language as nl
+...
 
 
+##################################################################################
+# Indirect DMA write example 1:
+#  - data_tensor has shape [128 x 512].
+#  - idx_tensor on HBM has shape [64] (with values [0, 2, 4, 6, ...]).
+#  - idx_tensor values read from HBM and stored in SBUF idx_tile.
+#  - data_tile of shape [64 x 512] values written into
+#    HBM data_tensor indexed by values in idx_tile.
+##################################################################################
+i_p = nl.arange(64)[:, None]
+i_f = nl.arange(512)[None, :]
+idx_tile = nl.load(idx_tensor[i_p]) # indices have to be in SB
+
+nl.store(data_tensor[idx_tile[i_p, 0], i_f], value=data_tile[0:64, 0:512])
+import neuronxcc.nki.isa as nisa
+import neuronxcc.nki.language as nl
+...
 
 
+#############################################################################################
+# Indirect DMA write example 2:
+#  - data_tensor has shape [128 x 512].
+#  - idx_tile on SBUF has shape [64 x 1] (with values [[0], [2], [4], ...] generated by iota)
+#  - data_tile of shape [64 x 512] values written into
+#    HBM data_tensor indexed by values in idx_tile.
+#############################################################################################
+idx_expr = 2*nl.arange(64)[:, None]
+idx_tile = nisa.iota(idx_expr, dtype=np.int32)
 
-[2025-03-21 18:28:12] LLM RESPONSE FOR ITERATION 1:
-***The error message indicates that the script is trying to import the 'torch' module, but it is not found in the environment. This suggests that the script may have a dependency on the PyTorch library, which is likely being used for tensor operations or other functionalities related to deep learning. However, the kernel code provided does not explicitly import or use 'torch', which makes the error a bit confusing. It could be that the environment where the code is being run requires 'torch' for some underlying operation or that another part of the codebase relies on it.***
+nl.store(data_tensor[idx_tile, i_f], value=data_tile[0:64, 0:512])
 
-***To fix the issue, I will first check if 'torch' is a required dependency for the overall project. If it is necessary, I'll ensure that it is installed in the environment. If it is not needed for the kernel provided, I will investigate why the import statement is present in the first place and remove it if it's unnecessary. This will help eliminate the error and allow the kernel to run as expected.***
+================================================================================
 
-Here are the steps I plan to take:
+--------------------------------------------------
 
-1. **Check if PyTorch is a required dependency**: If the broader codebase indeed requires 'torch', I will install it using the appropriate package manager (e.g., `pip install torch`).
-   
-2. **Remove unnecessary imports**: If it turns out that 'torch' is not required for the kernel function itself, I will ensure that there are no stray import statements related to it, as they are not part of the provided kernel code.
+Try to fix it. Clearly explain your line of reasoning as well as what you think the error is, and how you plan to fix it. Clearly put your initial reasoning inside triple stars like this *** example: i am making this change because i love unicorns ***. I want all your initial reasoning inside of these triple stars, not just the summary at the end.
 
-3. **Testing**: After making the necessary changes, I will run the kernel again to ensure that it operates correctly without the import error.
+[2025-03-21 19:00:30] LLM RESPONSE FOR ITERATION 1:
+*** The error message indicates that the `torch` module is not found, which suggests that the environment in which the kernel is being executed is missing the PyTorch library. Since the kernel itself doesn't directly reference or require PyTorch, this error is likely due to an issue in the setup or the environment where the kernel is being executed. The missing `torch` module is not directly related to the kernel code provided, but it suggests that there might be a testing or execution script that relies on PyTorch being installed. ***
 
-### Updated Kernel Code
-Since we do not see any direct use of 'torch' in the kernel code itself, I will provide a clean version of the kernel without any unnecessary imports. However, I will not change the kernel's logic as it appears correct. 
+*** To resolve this issue, I will ensure that the appropriate environment is set up with PyTorch installed. If the intention is to run tests or additional scripts that depend on PyTorch, I will need to install it using a package manager like `pip`. For instance, I can run `pip install torch` in the terminal. Once I confirm that PyTorch is installed, I will re-run the kernel to determine if the original issue persists. ***
 
-```python
-# Import the necessary NKI modules
-from neuronxcc import nki
+*** Additionally, I will verify the kernel code for any possible improvements or errors, ensuring that it correctly implements the vector addition functionality without any issues. However, since the kernel seems well-structured for the task at hand, I will focus on the environment setup first. ***
 
-# Define the vector addition kernel
-def vector_add_kernel(a, b):
-    """
-    Kernel function to perform element-wise addition of two vectors.
-    
-    :param a: First input vector (tile)
-    :param b: Second input vector (tile)
-    :return: Resulting vector (tile) after addition
-    """
-    # Use the NKI's add function to perform element-wise addition
-    result = nki.language.add(a, b)
-    return result
+### Steps to Fix:
+1. Install PyTorch:
+   - Open the terminal and run the command:
+     ```bash
+     pip install torch
+     ```
+2. After installation, re-run the kernel code to check if any further issues arise.
 
-# Define a function to launch the kernel
-def launch_vector_add_kernel(v1, v2):
-    """
-    Launches the vector addition kernel on the provided input vectors.
-    
-    :param v1: First input vector (list or array)
-    :param v2: Second input vector (list or array)
-    :return: Resulting vector after addition
-    """
-    if len(v1) != len(v2):
-        raise ValueError("Vectors must be of the same length")
+3. If the kernel runs successfully, I will check the output to ensure it meets the expected results. If there are further issues, I will analyze them based on the specific error messages encountered. 
 
-    # Convert input lists to tiles
-    tile_a = nki.tile(v1)
-    tile_b = nki.tile(v2)
+By following these steps, I can address the immediate problem of the missing `torch` module and ensure the kernel runs correctly.
 
-    # Launch the kernel
-    result_tile = vector_add_kernel(tile_a, tile_b)
+[2025-03-21 19:00:30] EXTRACTED REASONING:
+The error message indicates that the `torch` module is not found, which suggests that the environment in which the kernel is being executed is missing the PyTorch library. Since the kernel itself doesn't directly reference or require PyTorch, this error is likely due to an issue in the setup or the environment where the kernel is being executed. The missing `torch` module is not directly related to the kernel code provided, but it suggests that there might be a testing or execution script that relies on PyTorch being installed.
+To resolve this issue, I will ensure that the appropriate environment is set up with PyTorch installed. If the intention is to run tests or additional scripts that depend on PyTorch, I will need to install it using a package manager like `pip`. For instance, I can run `pip install torch` in the terminal. Once I confirm that PyTorch is installed, I will re-run the kernel to determine if the original issue persists.
+Additionally, I will verify the kernel code for any possible improvements or errors, ensuring that it correctly implements the vector addition functionality without any issues. However, since the kernel seems well-structured for the task at hand, I will focus on the environment setup first.
 
-    # Convert the result tile back to a list and return
-    return result_tile.to_list()
-
-# Example usage
-if __name__ == "__main__":
-    v1 = [1, 2, 3, 4]
-    v2 = [5, 6, 7, 8]
-
-    result = launch_vector_add_kernel(v1, v2)
-    print("Result of vector addition:", result)
-```
-
-After implementing these changes, if the import error persists, I will further investigate the broader context of the script and its dependencies to ensure that all required libraries are properly installed and imported.
-
-[2025-03-21 18:28:12] EXTRACTED REASONING:
-The error message indicates that the script is trying to import the 'torch' module, but it is not found in the environment. This suggests that the script may have a dependency on the PyTorch library, which is likely being used for tensor operations or other functionalities related to deep learning. However, the kernel code provided does not explicitly import or use 'torch', which makes the error a bit confusing. It could be that the environment where the code is being run requires 'torch' for some underlying operation or that another part of the codebase relies on it.
-To fix the issue, I will first check if 'torch' is a required dependency for the overall project. If it is necessary, I'll ensure that it is installed in the environment. If it is not needed for the kernel provided, I will investigate why the import statement is present in the first place and remove it if it's unnecessary. This will help eliminate the error and allow the kernel to run as expected.
-
-[2025-03-21 18:28:12] UPDATED KERNEL CODE:
-# Import the necessary NKI modules
-from neuronxcc import nki
-
-# Define the vector addition kernel
-def vector_add_kernel(a, b):
-    """
-    Kernel function to perform element-wise addition of two vectors.
-    
-    :param a: First input vector (tile)
-    :param b: Second input vector (tile)
-    :return: Resulting vector (tile) after addition
-    """
-    # Use the NKI's add function to perform element-wise addition
-    result = nki.language.add(a, b)
-    return result
-
-# Define a function to launch the kernel
-def launch_vector_add_kernel(v1, v2):
-    """
-    Launches the vector addition kernel on the provided input vectors.
-    
-    :param v1: First input vector (list or array)
-    :param v2: Second input vector (list or array)
-    :return: Resulting vector after addition
-    """
-    if len(v1) != len(v2):
-        raise ValueError("Vectors must be of the same length")
-
-    # Convert input lists to tiles
-    tile_a = nki.tile(v1)
-    tile_b = nki.tile(v2)
-
-    # Launch the kernel
-    result_tile = vector_add_kernel(tile_a, tile_b)
-
-    # Convert the result tile back to a list and return
-    return result_tile.to_list()
-
-# Example usage
-if __name__ == "__main__":
-    v1 = [1, 2, 3, 4]
-    v2 = [5, 6, 7, 8]
-
-    result = launch_vector_add_kernel(v1, v2)
-    print("Result of vector addition:", result)
-
-[2025-03-21 18:28:12] WAITING FOR USER INPUT TO CONTINUE TO NEXT ITERATION...
-[2025-03-21 18:29:08] 
+[2025-03-21 19:00:30] Error extracting kernel code: Could not find a fenced Python code block in the generated output.
+[2025-03-21 19:00:30] 
 === ITERATION 2 ===
 
-[2025-03-21 18:29:08] RUNNING TEST SCRIPT: /Users/rgopalam/Desktop/AWS-NKI/torch2nki/evaluation/samples/test_vector_add.py
-[2025-03-21 18:29:08] TEST SCRIPT OUTPUT:
+[2025-03-21 19:00:30] RUNNING TEST SCRIPT: /Users/rgopalam/Desktop/AWS-NKI/torch2nki/evaluation/samples/test_vector_add.py
+[2025-03-21 19:00:30] TEST SCRIPT OUTPUT:
 
 Traceback (most recent call last):
   File "/Users/rgopalam/Desktop/AWS-NKI/torch2nki/evaluation/samples/test_vector_add.py", line 2, in <module>
@@ -896,239 +782,64 @@ Traceback (most recent call last):
 ModuleNotFoundError: No module named 'torch'
 
 
-[2025-03-21 18:29:08] PARSED ERROR DOCUMENTATION:
+[2025-03-21 19:00:30] PARSED ERROR DOCUMENTATION:
 No documented errors found in the output.
 
-[2025-03-21 18:29:08] PERFORMING RAG RETRIEVAL FOR ITERATION 2...
-[2025-03-21 18:29:08] GENERATING RETRIEVAL QUERY...
-[2025-03-21 18:29:08] COMBINED PROMPT FOR QUERY:
-Generate a custom kernel for vector addition a using AWS Neural Kernel Interface (NKI). The kernel should:
-- Use the proper NKI API integration.
-- Follow best practices for compilation.
-- Be well-structured, modular, and maintainable.
-
-
-Here is a python implementation for it:
-
-def vector_add(v1, v2):
-    """
-    Adds two vectors element-wise using an explicit loop.
-    :param v1: List of numbers (first vector)
-    :param v2: List of numbers (second vector)
-    :return: List representing the sum of the two vectors
-    """
-    if len(v1) != len(v2):
-        raise ValueError("Vectors must be of the same length")
-    
-    result = []
-    for i in range(len(v1)):
-        result.append(v1[i] + v2[i])
-    
-    return result
-
-Don't use libnrt.so.1
-
-Make sure to return the output. Make sure to import nki: from neuronxcc import nki
-
-
-Additional context - Error encountered: 
-Traceback (most recent call last):
-  File "/Users/rgopalam/Desktop/AWS-NKI/torch2nki/evaluation/samples/test_vector_add.py", line 2, in <module>
-    import torch
-ModuleNotFoundError: No module named ...
-
-[2025-03-21 18:29:14] GENERATED QUERY:
-### Key Technical Concepts for NKI Kernel
-- NKI API integration
-- Kernel compilation best practices
-- Modular design
-- Vector operations
-- Error handling
-- Performance optimization
-
-### Useful Functions/Methods for Vector Operations
-- `nki.create_kernel()`
-- `nki.compile_kernel()`
-- `nki.execute_kernel()`
-- `nki.set_input()`
-- `nki.get_output()`
-- `nki.cleanup()`
-
-### Custom Kernel for Vector Addition using NKI
-
-```python
-from neuronxcc import nki
-
-def vector_add_kernel(v1, v2):
-    """
-    Custom kernel for vector addition using NKI.
-    :param v1: List of numbers (first vector)
-    :param v2: List of numbers (second vector)
-    :return: List representing the sum of the two vectors
-    """
-    if len(v1) != len(v2):
-        raise ValueError("Vectors must be of the same length")
-
-    # Create the kernel
-    kernel_code = """
-    __kernel void vector_add(__global const float* v1, __global const float* v2, __global float* result, int length) {
-        int id = get_global_id(0);
-        if (id < length) {
-            result[id] = v1[id] + v2[id];
-        }
-    }
-    """
-
-    # Compile the kernel
-    kernel = nki.create_kernel(kernel_code)
-    
-    # Set inputs
-    nki.set_input('v1', v1)
-    nki.set_input('v2', v2)
-    
-    # Allocate output
-    result = [0] * len(v1)
-    nki.set_input('result', result)
-    
-    # Execute the kernel
-    nki.execute_kernel('vector_add', len(v1))
-    
-    # Get output
-    output = nki.get_output('result')
-    
-    # Cleanup
-    nki.cleanup()
-    
-    return output
+[2025-03-21 19:00:30] ADDITIONAL FUNCTIONS RESPONSE:
+```json
+[]
 ```
 
-### Note
-Ensure that the NKI environment is correctly set up and that the required modules are installed to avoid import errors.
+[2025-03-21 19:00:30] ERROR PARSING ADDITIONAL FUNCTIONS: Expecting value: line 1 column 1 (char 0)
 
-[2025-03-21 18:29:14] RETRIEVING DOCUMENTS FROM PINECONE...
-[2025-03-21 18:29:16] RETRIEVED CONTEXT:
-Doc1: No title - nki.language.add
-
-Signature:
-nki.language.add(x, y, *, dtype=None, mask=None, **kwargs)
-
-Description:
-Add the inputs, element-wise.
-((Similar to numpy.add))
-
-Parameters:
-x – a tile or a scalar value.
-y – a tile or a scalar value. x.shape and y.shape must be broadcastable to a common shape, that will become the shape of the output.
-dtype – (optional) data type to cast the output type to (see Supported Data Types for more information); if not specified, it will default to be the same as the data t...
-
-Doc2: No title - nki.language.sum
-
-Signature:
-nki.language.sum(x, axis, *, dtype=None, mask=None, keepdims=False, **kwargs)
-
-Description:
-Sum of elements along the specified axis (or axes) of the input.
-((Similar to numpy.sum))
-
-Parameters:
-x – a tile.
-axis – int or tuple/list of ints. The axis (or axes) along which to operate; must be free dimensions, not partition dimension (0); can only be the last contiguous dim(s) of the tile: [1], [1,2], [1,2,3], [1,2,3,4]
-dtype – (optional) data type to cast the output ty...
-
-Doc3: No title - nki.language.nc
-
-Signature:
-nki.language.nc = Ellipsis
-
-Description:
-Create a logical neuron core dimension in launch grid.
-The instances of spmd kernel will be distributed to different physical neuron cores on the annotated dimension.
-
-Example:
-# Let compiler decide how to distribute the instances of spmd kernel
-c = kernel[2, 2](a, b)
-
-import neuronxcc.nki.language as nl
-
-# Distribute the kernel to physical neuron cores around the first dimension
-# of the spmd grid.
-c = kernel[nl.nc(2), 2](a, b...
-
-Doc4: No title - nki.language.all_reduce
-
-Signature:
-nki.language.all_reduce(x, op, program_axes, *, dtype=None, mask=None, parallel_reduce=True, asynchronous=False, **kwargs)
-
-Description:
-Apply reduce operation over multiple SPMD programs.
-
-Parameters:
-x – a tile.
-op – numpy ALU operator to use to reduce over the input tile.
-program_axes – a single axis or a tuple of axes along which the reduction operation is performed.
-dtype – (optional) data type to cast the output type to (see Supported Data Types for more...
-
-Doc5: No title - nki.language.affine_range
-
-Signature:
-nki.language.affine_range(*args, **kwargs)
-
-Description:
-Create a sequence of numbers for use as parallel loop iterators in NKI. affine_range should be the default loop iterator choice, when there is no loop carried dependency. Note, associative reductions are not considered loop carried dependencies in this context. A concrete example of associative reduction is multiple nl.matmul or nisa.nc_matmul calls accumulating into the same output buffer defined outs...
-
-
-
-[2025-03-21 18:29:16] GENERATING IMPROVED KERNEL (ITERATION 2)...
-[2025-03-21 18:29:16] FULL ERROR PROMPT TO LLM:
+[2025-03-21 19:00:30] GENERATING IMPROVED KERNEL (ITERATION 2)...
+[2025-03-21 19:00:30] FULL ERROR PROMPT TO LLM:
 Human: You are a engineer at Annapurna Labs writing efficent and correct kernels.
 
 Here is the kernel you just wrote:
 --------------------------------------------------
-# Import the necessary NKI modules
+# Importing necessary NKI modules
 from neuronxcc import nki
+import neuronxcc.nki.language as nl
 
-# Define the vector addition kernel
-def vector_add_kernel(a, b):
+def vector_addition_kernel(a_tensor, b_tensor, c_tensor, vector_shape):
     """
-    Kernel function to perform element-wise addition of two vectors.
+    Vector addition kernel using NKI for element-wise addition of two tensors.
+
+    :param a_tensor: Input tensor for the first vector (on HBM)
+    :param b_tensor: Input tensor for the second vector (on HBM)
+    :param c_tensor: Output tensor for storing the result (on HBM)
+    :param vector_shape: Tuple representing the shape of the vectors
+    """
     
-    :param a: First input vector (tile)
-    :param b: Second input vector (tile)
-    :return: Resulting vector (tile) after addition
-    """
-    # Use the NKI's add function to perform element-wise addition
-    result = nki.language.add(a, b)
-    return result
-
-# Define a function to launch the kernel
-def launch_vector_add_kernel(v1, v2):
-    """
-    Launches the vector addition kernel on the provided input vectors.
+    # Ensure that the vector dimensions are valid for addition
+    assert len(vector_shape) == 2, "Vector shape must be 2-dimensional (e.g., [N, M])."
     
-    :param v1: First input vector (list or array)
-    :param v2: Second input vector (list or array)
-    :return: Resulting vector after addition
-    """
-    if len(v1) != len(v2):
-        raise ValueError("Vectors must be of the same length")
+    # Define the partition dimensions
+    batch_size = vector_shape[0]
+    feature_size = vector_shape[1]
 
-    # Convert input lists to tiles
-    tile_a = nki.tile(v1)
-    tile_b = nki.tile(v2)
-
-    # Launch the kernel
-    result_tile = vector_add_kernel(tile_a, tile_b)
-
-    # Convert the result tile back to a list and return
-    return result_tile.to_list()
+    # Process the vector addition in batches
+    for i_b in nl.affine_range(batch_size):
+        # Load tensors from HBM to SBUF
+        a_tile = nl.load(a_tensor[i_b, :])
+        b_tile = nl.load(b_tensor[i_b, :])
+        
+        # Perform element-wise addition
+        c_tile = nl.add(a_tile, b_tile)
+        
+        # Store the result back to HBM
+        nl.store(c_tensor[i_b, :], c_tile)
 
 # Example usage
 if __name__ == "__main__":
-    v1 = [1, 2, 3, 4]
-    v2 = [5, 6, 7, 8]
+    # Placeholder for tensor shapes and HBM memory allocation
+    # a_tensor, b_tensor, c_tensor should be defined and allocated in HBM
 
-    result = launch_vector_add_kernel(v1, v2)
-    print("Result of vector addition:", result)
+    # Assuming `a_tensor`, `b_tensor`, and `c_tensor` are allocated in HBM
+    # and their shapes are compatible for addition
+    vector_shape = (128, 512)  # Example shape
+    vector_addition_kernel(a_tensor, b_tensor, c_tensor, vector_shape)
 --------------------------------------------------
 
 Here is the error message it got:
@@ -1146,10 +857,11 @@ Here is detailed documentation about the specific errors encountered:
 No specific documentation found for the errors in the output. Please analyze the error message carefully.
 --------------------------------------------------
 
-Try to fix it. Clearly explain your line of reasoning as well as what you think the error is, and how you plan to fix it. Clearly put your initial reasoning inside triple stars like this *** example: i am making this change because i love unicorns ***. I want all your initial reasoning inside of these triple stars, not just the summary at the end.
-
-Retrieved Context:
-Doc1: No title - nki.language.add
+Function Documentation:
+--------------------------------------------------
+FUNCTION: add
+--------------------------------------------------
+nki.language.add
 
 Signature:
 nki.language.add(x, y, *, dtype=None, mask=None, **kwargs)
@@ -1161,189 +873,215 @@ Add the inputs, element-wise.
 Parameters:
 x – a tile or a scalar value.
 y – a tile or a scalar value. x.shape and y.shape must be broadcastable to a common shape, that will become the shape of the output.
-dtype – (optional) data type to cast the output type to (see Supported Data Types for more information); if not specified, it will default to be the same as the data t...
+dtype – (optional) data type to cast the output type to (see Supported Data Types for more information); if not specified, it will default to be the same as the data type of the input tiles, or whichever input type has the highest precision (see NKI Type Promotion for more information);
+mask – (optional) a compile-time constant predicate that controls whether/how this instruction is executed (see NKI API Masking for details)
 
-Doc2: No title - nki.language.sum
-
-Signature:
-nki.language.sum(x, axis, *, dtype=None, mask=None, keepdims=False, **kwargs)
-
-Description:
-Sum of elements along the specified axis (or axes) of the input.
-((Similar to numpy.sum))
-
-Parameters:
-x – a tile.
-axis – int or tuple/list of ints. The axis (or axes) along which to operate; must be free dimensions, not partition dimension (0); can only be the last contiguous dim(s) of the tile: [1], [1,2], [1,2,3], [1,2,3,4]
-dtype – (optional) data type to cast the output ty...
-
-Doc3: No title - nki.language.nc
-
-Signature:
-nki.language.nc = Ellipsis
-
-Description:
-Create a logical neuron core dimension in launch grid.
-The instances of spmd kernel will be distributed to different physical neuron cores on the annotated dimension.
+Returns:
+a tile that has x + y, element-wise.
 
 Example:
-# Let compiler decide how to distribute the instances of spmd kernel
-c = kernel[2, 2](a, b)
-
 import neuronxcc.nki.language as nl
 
-# Distribute the kernel to physical neuron cores around the first dimension
-# of the spmd grid.
-c = kernel[nl.nc(2), 2](a, b...
+a = nl.load(a_tensor[0:128, 0:512])
+b = nl.load(b_tensor[0:128, 0:512])
+# add a and b element-wise and store in c[128, 512]
+c = nl.add(a, b)
+nl.store(c_tensor[0:128, 0:512], c)
 
-Doc4: No title - nki.language.all_reduce
+a = nl.load(a_tensor[0:128, 0:512])
+b = 2.2
+# add constant b to each element in a
+c = nl.add(a, b)
+nl.store(c_tensor[0:128, 0:512], c)
+
+a = nl.load(a_tensor[0:128, 0:512])
+b = nl.load(b_tensor[0:128, 0:1])
+# broadcast on free dimension -- [128, 1] is broadcasted to [128, 512]
+c = nl.add(a, b)
+nl.store(c_tensor[0:128, 0:512], c)
+
+a = nl.load(a_tensor[0:128, 0:512])
+b = nl.load(b_tensor[0:1, 0:512])
+# broadcast on partition dimension -- [1, 512] is broadcasted to [128, 512]
+c = nl.add(a, b)
+nl.store(c_tensor[0:128, 0:512], c)
+
+a = nl.load(a_tensor[0:128, 0:512])
+b = nl.load(b_tensor[0:1, 0:1])
+# broadcast on both dimensions -- [1, 1] is broadcasted to [128, 512]
+c = nl.add(a, b)
+nl.store(c_tensor[0:128, 0:512], c)
+
+a = nl.load(a_tensor[0:128, 0:1])
+b = nl.load(b_tensor[0:1, 0:512])
+# broadcast on each dimensions -- [128, 1] and [1, 512] are broadcasted to [128, 512]
+c = nl.add(a, b)
+nl.store(c_tensor[0:128, 0:512], c)
+
+Note:
+Broadcasting in the partition dimension is generally more expensive than broadcasting in free dimension. It is recommended to align your data to perform free dimension broadcast whenever possible.
+
+================================================================================
+
+FUNCTION: load
+--------------------------------------------------
+nki.language.load
 
 Signature:
-nki.language.all_reduce(x, op, program_axes, *, dtype=None, mask=None, parallel_reduce=True, asynchronous=False, **kwargs)
+nki.language.load(src, *, mask=None, dtype=None, **kwargs)
 
 Description:
-Apply reduce operation over multiple SPMD programs.
+Load a tensor from device memory (HBM) into on-chip memory (SBUF).
+See Memory hierarchy for detailed information.
 
 Parameters:
-x – a tile.
-op – numpy ALU operator to use to reduce over the input tile.
-program_axes – a single axis or a tuple of axes along which the reduction operation is performed.
-dtype – (optional) data type to cast the output type to (see Supported Data Types for more...
+src – HBM tensor to load the data from.
+mask – (optional) a compile-time constant predicate that controls whether/how this instruction is executed (see NKI API Masking for details)
+dtype – (optional) data type to cast the output type to (see Supported Data Types for more information); if not specified, it will default to be the same as the data type of the input tile.
 
-Doc5: No title - nki.language.affine_range
+Returns:
+a new tile on SBUF with values from src.
+
+Example:
+import neuronxcc.nki.language as nl
+
+# load from in_tensor[P, F] that is on HBM
+# copy into data_tile[P, F] that is on SBUF
+data_tile = nl.load(in_tensor)
+...
+
+Note:
+Partition dimension size can’t exceed the hardware limitation of nki.language.tile_size.pmax, see Tile size considerations.
+Partition dimension has to be the first dimension in the index tuple of a tile. Therefore, data may need to be split into multiple batches to load/store, for example:
+import neuronxcc.nki.language as nl
+
+for i_b in nl.affine_range(4):
+  data_tile = nl.zeros((128, 512), dtype=in_tensor.dtype) 
+  # load from in_tensor[4, 128, 512] one batch at a time
+  # copy into data_tile[128, 512]
+  i_p, i_f = nl.mgrid[0:128, 0:512]
+  data_tile[i_p, i_f] = nl.load(in_tensor[i_b, i_p, i_f])
+  ...
+
+Also supports indirect DMA access with dynamic index values:
+import neuronxcc.nki.language as nl
+...
+
+
+############################################################################################
+# Indirect DMA read example 1:
+# - data_tensor on HBM has shape [128 x 512].
+# - idx_tensor on HBM has shape [64] (with values [0, 2, 4, 6, ...]).
+# - idx_tensor values read from HBM and stored in SBUF idx_tile of shape [64 x 1]
+# - data_tensor values read from HBM indexed by values in idx_tile 
+#   and store into SBUF data_tile of shape [64 x 512].
+############################################################################################
+i_p = nl.arange(64)[:, None]
+i_f = nl.arange(512)[None, :]
+
+idx_tile = nl.load(idx_tensor[i_p]) # indices have to be in SBUF
+data_tile = nl.load(data_tensor[idx_tile[i_p, 0], i_f]) 
+...
+import neuronxcc.nki.isa as nisa
+import neuronxcc.nki.language as nl
+...
+
+
+############################################################################################
+# Indirect DMA read example 2:
+# - data_tensor on HBM has shape [128 x 512].
+# - idx_tile on SBUF has shape [64 x 1] (with values [[0], [2], [4], ...] generated by iota)
+# - data_tensor values read from HBM indexed by values in idx_tile 
+#   and store into SBUF data_tile of shape [64 x 512].
+############################################################################################
+i_f = nl.arange(512)[None, :]
+
+idx_expr = 2*nl.arange(64)[:, None]
+idx_tile = nisa.iota(idx_expr, dtype=np.int32)
+data_tile = nl.load(data_tensor[idx_tile, i_f]) 
+...
+
+================================================================================
+
+FUNCTION: store
+--------------------------------------------------
+nki.language.store
 
 Signature:
-nki.language.affine_range(*args, **kwargs)
+nki.language.store(dst, value, *, mask=None, **kwargs)
 
 Description:
-Create a sequence of numbers for use as parallel loop iterators in NKI. affine_range should be the default loop iterator choice, when there is no loop carried dependency. Note, associative reductions are not considered loop carried dependencies in this context. A concrete example of associative reduction is multiple nl.matmul or nisa.nc_matmul calls accumulating into the same output buffer defined outs...
+Store into a tensor on device memory (HBM) from on-chip memory (SBUF).
+See Memory hierarchy for detailed information.
+
+Parameters:
+dst – HBM tensor to store the data into.
+value – An SBUF tile that contains the values to store.
+mask – (optional) a compile-time constant predicate that controls whether/how this instruction is executed (see NKI API Masking for details)
+
+Returns:
+none
+
+Example:
+import neuronxcc.nki.language as nl
+
+...
+# store into out_tensor[P, F] that is on HBM
+# from data_tile[P, F] that is on SBUF
+nl.store(out_tensor, data_tile)
+
+Note:
+Partition dimension size can’t exceed the hardware limitation of nki.language.tile_size.pmax, see Tile size considerations.
+Partition dimension has to be the first dimension in the index tuple of a tile. Therefore, data may need to be split into multiple batches to load/store, for example:
+import neuronxcc.nki.language as nl
+
+for i_b in nl.affine_range(4):
+  data_tile = nl.zeros((128, 512), dtype=in_tensor.dtype) 
+
+...
+# store into out_tensor[4, 128, 512] one batch at a time
+# from data_tile[128, 512] 
+i_p, i_f = nl.mgrid[0:128, 0:512]
+nl.store(out_tensor[i_b, i_p, i_f], value=data_tile[i_p, i_f]) 
+
+Also supports indirect DMA access with dynamic index values:
+import neuronxcc.nki.language as nl
+...
 
 
+##################################################################################
+# Indirect DMA write example 1:
+#  - data_tensor has shape [128 x 512].
+#  - idx_tensor on HBM has shape [64] (with values [0, 2, 4, 6, ...]).
+#  - idx_tensor values read from HBM and stored in SBUF idx_tile.
+#  - data_tile of shape [64 x 512] values written into
+#    HBM data_tensor indexed by values in idx_tile.
+##################################################################################
+i_p = nl.arange(64)[:, None]
+i_f = nl.arange(512)[None, :]
+idx_tile = nl.load(idx_tensor[i_p]) # indices have to be in SB
+
+nl.store(data_tensor[idx_tile[i_p, 0], i_f], value=data_tile[0:64, 0:512])
+import neuronxcc.nki.isa as nisa
+import neuronxcc.nki.language as nl
+...
 
 
+#############################################################################################
+# Indirect DMA write example 2:
+#  - data_tensor has shape [128 x 512].
+#  - idx_tile on SBUF has shape [64 x 1] (with values [[0], [2], [4], ...] generated by iota)
+#  - data_tile of shape [64 x 512] values written into
+#    HBM data_tensor indexed by values in idx_tile.
+#############################################################################################
+idx_expr = 2*nl.arange(64)[:, None]
+idx_tile = nisa.iota(idx_expr, dtype=np.int32)
 
-[2025-03-21 18:29:25] LLM RESPONSE FOR ITERATION 2:
-The error message indicates that there is a `ModuleNotFoundError` stating "No module named 'torch'". This specific error arises when the Python interpreter cannot find the `torch` library, which is a part of the PyTorch framework used for machine learning.
+nl.store(data_tensor[idx_tile, i_f], value=data_tile[0:64, 0:512])
 
-***I am making this change because the vector addition kernel does not inherently require PyTorch, and the error indicates that the environment lacks the necessary library to run the script. To ensure that the kernel runs correctly without relying on an unavailable external library, I will adjust the code to avoid importing PyTorch or, if necessary, provide guidance on installing it.***
+================================================================================
 
-Here’s how to fix it:
+--------------------------------------------------
 
-1. **Check if PyTorch is needed**: Since the kernel you wrote does not directly use PyTorch functions, I will ensure that the code does not include any unnecessary imports. 
+Try to fix it. Clearly explain your line of reasoning as well as what you think the error is, and how you plan to fix it. Clearly put your initial reasoning inside triple stars like this *** example: i am making this change because i love unicorns ***. I want all your initial reasoning inside of these triple stars, not just the summary at the end.
 
-2. **Running environment**: If the vector addition kernel is intended to run in an environment where PyTorch is required for other reasons, I will provide instructions on how to install it.
-
-3. **Installation guidance**: If the environment is intended to use PyTorch, I will add a note on how to install it using pip.
-
-Here’s the corrected code:
-
-```python
-# Import the necessary NKI modules
-from neuronxcc import nki
-
-# Define the vector addition kernel
-def vector_add_kernel(a, b):
-    """
-    Kernel function to perform element-wise addition of two vectors.
-    
-    :param a: First input vector (tile)
-    :param b: Second input vector (tile)
-    :return: Resulting vector (tile) after addition
-    """
-    # Use the NKI's add function to perform element-wise addition
-    result = nki.language.add(a, b)
-    return result
-
-# Define a function to launch the kernel
-def launch_vector_add_kernel(v1, v2):
-    """
-    Launches the vector addition kernel on the provided input vectors.
-    
-    :param v1: First input vector (list or array)
-    :param v2: Second input vector (list or array)
-    :return: Resulting vector after addition
-    """
-    if len(v1) != len(v2):
-        raise ValueError("Vectors must be of the same length")
-
-    # Convert input lists to tiles
-    tile_a = nki.tile(v1)
-    tile_b = nki.tile(v2)
-
-    # Launch the kernel
-    result_tile = vector_add_kernel(tile_a, tile_b)
-
-    # Convert the result tile back to a list and return
-    return result_tile.to_list()
-
-# Example usage
-if __name__ == "__main__":
-    v1 = [1, 2, 3, 4]
-    v2 = [5, 6, 7, 8]
-
-    result = launch_vector_add_kernel(v1, v2)
-    print("Result of vector addition:", result)
-
-# Note: If you encounter a 'ModuleNotFoundError' for 'torch', 
-# you can install PyTorch by running:
-# pip install torch
-```
-
-***I am making this note at the end to clarify that the original error was not due to the vector addition kernel itself but rather due to an unrelated missing library (`torch`). This change ensures that the code does not have unnecessary dependencies and provides clarity on how to address the error if the user intends to use PyTorch in the future.***
-
-[2025-03-21 18:29:25] EXTRACTED REASONING:
-I am making this change because the vector addition kernel does not inherently require PyTorch, and the error indicates that the environment lacks the necessary library to run the script. To ensure that the kernel runs correctly without relying on an unavailable external library, I will adjust the code to avoid importing PyTorch or, if necessary, provide guidance on installing it.
-I am making this note at the end to clarify that the original error was not due to the vector addition kernel itself but rather due to an unrelated missing library (`torch`). This change ensures that the code does not have unnecessary dependencies and provides clarity on how to address the error if the user intends to use PyTorch in the future.
-
-[2025-03-21 18:29:25] UPDATED KERNEL CODE:
-# Import the necessary NKI modules
-from neuronxcc import nki
-
-# Define the vector addition kernel
-def vector_add_kernel(a, b):
-    """
-    Kernel function to perform element-wise addition of two vectors.
-    
-    :param a: First input vector (tile)
-    :param b: Second input vector (tile)
-    :return: Resulting vector (tile) after addition
-    """
-    # Use the NKI's add function to perform element-wise addition
-    result = nki.language.add(a, b)
-    return result
-
-# Define a function to launch the kernel
-def launch_vector_add_kernel(v1, v2):
-    """
-    Launches the vector addition kernel on the provided input vectors.
-    
-    :param v1: First input vector (list or array)
-    :param v2: Second input vector (list or array)
-    :return: Resulting vector after addition
-    """
-    if len(v1) != len(v2):
-        raise ValueError("Vectors must be of the same length")
-
-    # Convert input lists to tiles
-    tile_a = nki.tile(v1)
-    tile_b = nki.tile(v2)
-
-    # Launch the kernel
-    result_tile = vector_add_kernel(tile_a, tile_b)
-
-    # Convert the result tile back to a list and return
-    return result_tile.to_list()
-
-# Example usage
-if __name__ == "__main__":
-    v1 = [1, 2, 3, 4]
-    v2 = [5, 6, 7, 8]
-
-    result = launch_vector_add_kernel(v1, v2)
-    print("Result of vector addition:", result)
-
-# Note: If you encounter a 'ModuleNotFoundError' for 'torch', 
-# you can install PyTorch by running:
-# pip install torch
-
-[2025-03-21 18:29:25] WAITING FOR USER INPUT TO CONTINUE TO NEXT ITERATION...

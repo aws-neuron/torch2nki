@@ -1,49 +1,42 @@
-# Import the necessary NKI modules
+# Importing necessary NKI modules
 from neuronxcc import nki
+import neuronxcc.nki.language as nl
 
-# Define the vector addition kernel
-def vector_add_kernel(a, b):
+def vector_addition_kernel(a_tensor, b_tensor, c_tensor, vector_shape):
     """
-    Kernel function to perform element-wise addition of two vectors.
+    Vector addition kernel using NKI for element-wise addition of two tensors.
+
+    :param a_tensor: Input tensor for the first vector (on HBM)
+    :param b_tensor: Input tensor for the second vector (on HBM)
+    :param c_tensor: Output tensor for storing the result (on HBM)
+    :param vector_shape: Tuple representing the shape of the vectors
+    """
     
-    :param a: First input vector (tile)
-    :param b: Second input vector (tile)
-    :return: Resulting vector (tile) after addition
-    """
-    # Use the NKI's add function to perform element-wise addition
-    result = nki.language.add(a, b)
-    return result
-
-# Define a function to launch the kernel
-def launch_vector_add_kernel(v1, v2):
-    """
-    Launches the vector addition kernel on the provided input vectors.
+    # Ensure that the vector dimensions are valid for addition
+    assert len(vector_shape) == 2, "Vector shape must be 2-dimensional (e.g., [N, M])."
     
-    :param v1: First input vector (list or array)
-    :param v2: Second input vector (list or array)
-    :return: Resulting vector after addition
-    """
-    if len(v1) != len(v2):
-        raise ValueError("Vectors must be of the same length")
+    # Define the partition dimensions
+    batch_size = vector_shape[0]
+    feature_size = vector_shape[1]
 
-    # Convert input lists to tiles
-    tile_a = nki.tile(v1)
-    tile_b = nki.tile(v2)
-
-    # Launch the kernel
-    result_tile = vector_add_kernel(tile_a, tile_b)
-
-    # Convert the result tile back to a list and return
-    return result_tile.to_list()
+    # Process the vector addition in batches
+    for i_b in nl.affine_range(batch_size):
+        # Load tensors from HBM to SBUF
+        a_tile = nl.load(a_tensor[i_b, :])
+        b_tile = nl.load(b_tensor[i_b, :])
+        
+        # Perform element-wise addition
+        c_tile = nl.add(a_tile, b_tile)
+        
+        # Store the result back to HBM
+        nl.store(c_tensor[i_b, :], c_tile)
 
 # Example usage
 if __name__ == "__main__":
-    v1 = [1, 2, 3, 4]
-    v2 = [5, 6, 7, 8]
+    # Placeholder for tensor shapes and HBM memory allocation
+    # a_tensor, b_tensor, c_tensor should be defined and allocated in HBM
 
-    result = launch_vector_add_kernel(v1, v2)
-    print("Result of vector addition:", result)
-
-# Note: If you encounter a 'ModuleNotFoundError' for 'torch', 
-# you can install PyTorch by running:
-# pip install torch
+    # Assuming `a_tensor`, `b_tensor`, and `c_tensor` are allocated in HBM
+    # and their shapes are compatible for addition
+    vector_shape = (128, 512)  # Example shape
+    vector_addition_kernel(a_tensor, b_tensor, c_tensor, vector_shape)

@@ -691,6 +691,7 @@ def generate_kernel_with_rag_and_error_loop(
 
 if __name__ == "__main__":
     # Define constant file paths
+    #TODO change depending on system
     system_prompt_path = "/Users/rgopalam/Desktop/AWS-NKI/torch2nki/prompts/system_prompt_for_rag.txt"
     user_prompt_path = "/Users/rgopalam/Desktop/AWS-NKI/torch2nki/prompts/user_prompt_for_rag.txt"
     output_address = "/Users/rgopalam/Desktop/AWS-NKI/torch2nki/generation/samples/vector_add.txt"  # Raw OpenAI output

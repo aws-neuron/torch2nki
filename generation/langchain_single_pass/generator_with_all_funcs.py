@@ -585,7 +585,7 @@ def generate_kernel_with_rag_and_error_loop(
             print(f"Found {len(error_docs)} documented errors in the output")
             
             # Save error documentation to a separate file for this iteration
-            error_doc_file = f"{output_address}.error_doc.iteration{iteration+1}.txt"
+            error_doc_file = f"{output_address}.error_doc.txt"
             with open(error_doc_file, "w", encoding="utf-8") as f:
                 f.write(error_documentation)
             print(f"Error documentation saved to {error_doc_file}")
@@ -692,16 +692,16 @@ def generate_kernel_with_rag_and_error_loop(
 if __name__ == "__main__":
     # Define constant file paths
     #TODO change depending on system
-    system_prompt_path = "/Users/rgopalam/Desktop/AWS-NKI/torch2nki/prompts/system_prompt_for_rag.txt"
-    user_prompt_path = "/Users/rgopalam/Desktop/AWS-NKI/torch2nki/prompts/user_prompt_for_rag.txt"
-    output_address = "/Users/rgopalam/Desktop/AWS-NKI/torch2nki/generation/samples/vector_add.txt"  # Raw OpenAI output
-    kernel_module_path = "/Users/rgopalam/Desktop/AWS-NKI/torch2nki/generation/samples/vector_add_kernel.py"  # Kernel module file
-    test_script_path = "/Users/rgopalam/Desktop/AWS-NKI/torch2nki/evaluation/samples/test_vector_add.py"
-    test_script_output = "/Users/rgopalam/Desktop/AWS-NKI/torch2nki/prompts/script_output.txt"
-    reasoning_log_path = "/Users/rgopalam/Desktop/AWS-NKI/torch2nki/generation/samples/reasoning_log.txt"
+    system_prompt_path = "/home/ubuntu/torch2nki/generation/langchain_single_pass/langchain_files/langchain_prompts/system_prompt_langchain.txt"
+    user_prompt_path = "/home/ubuntu/torch2nki/generation/langchain_single_pass/langchain_files/langchain_prompts/user_prompt_langchain.txt"
+    output_address = "/home/ubuntu/torch2nki/generation/langchain_single_pass/langchain_files/langchain_outputs/vector_add.txt"  # Raw OpenAI output
+    kernel_module_path = "/home/ubuntu/torch2nki/generation/langchain_single_pass/langchain_files/langchain_outputs/vector_add_kernel.py"  # Kernel module file
+    test_script_path = "/home/ubuntu/torch2nki/evaluation/samples/test_vector_add.py"
+    test_script_output = "/home/ubuntu/torch2nki/generation/langchain_single_pass/langchain_files/langchain_outputs/error_message.txt"
+    reasoning_log_path = "/home/ubuntu/torch2nki/generation/langchain_single_pass/langchain_files/langchain_outputs/reasoning_log.txt"
     
     # Add path to error documentation
-    error_doc_path = "/Users/rgopalam/Desktop/AWS-NKI/torch2nki/documentation/nki_documentation/nki_error_messages.txt"
+    error_doc_path = "/home/ubuntu/torch2nki/documentation/nki_documentation/nki_error_messages.txt"
     
     # Get credentials
     pinecone_api_key = os.environ.get('PINECONE_API_KEY')

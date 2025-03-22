@@ -22,7 +22,7 @@ def vector_add_kernel(v1, v2):
         raise ValueError("Input vectors must have at least one dimension")
 
     # Create an output tensor of the same shape with zeros
-    result = nl.zeros(((v1.shape,),0), dtype=v1.dtype)  # Correctly create a tensor without an extra dimension
+    result = nl.zeros((v1.shape, 0), dtype=v1.dtype)  # Correctly create a tensor without an extra dimension
 
     # Check if the input tensors are 1D or 2D and handle accordingly
     if len(v1.shape) == 1:  # 1D case

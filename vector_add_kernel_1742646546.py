@@ -20,29 +20,29 @@ def vector_add_kernel(v1, v2):
     # Ensure both tensors have a valid shape for NKI
     if len(v1.shape) < 1 or len(v2.shape) < 1:
         raise ValueError("Input vectors must have at least one dimension")
-
+    
     # Create an output tensor of the same shape with zeros
-    result = nl.zeros(((v1.shape,),0), dtype=v1.dtype)  # Correctly create a tensor without an extra dimension
+    result = nl.zeros((*v1.shape, 1), dtype=v1.dtype)  # Correctly create a tensor with an additional dimension
 
     # Check if the input tensors are 1D or 2D and handle accordingly
     if len(v1.shape) == 1:  # 1D case
-        for i in nl.arange(v1.shape[0]):  # No reshaping here, keep it as 1D
-            a = nl.load(v1[i])  # Load the element from the first tensor
-            b = nl.load(v2[i])  # Load the element from the second tensor
+        for i in nl.arange(v1.shape[0]):  # Loop over the first dimension
+            a = nl.load(v1[i:i+1])  # Load the element from the first tensor
+            b = nl.load(v2[i:i+1])  # Load the element from the second tensor
             c = nl.add(a, b)  # Perform element-wise addition
-            nl.store(result[i], c)  # Store the result
+            nl.store(result[i:i+1], c)  # Store the result
 
     else:  # 2D case
-        for i in nl.arange(v1.shape[0]):  # No reshaping for 1D arange
-            for j in nl.arange(v1.shape[1]):  # No reshaping for 1D arange
+        for i in nl.arange(v1.shape[0]):  # Loop over the first dimension (rows)
+            for j in nl.arange(v1.shape[1]):  # Loop over the second dimension (columns)
                 # Load the elements from the input tensors
-                a = nl.load(v1[i, j])  # Use slicing to maintain dimensionality
-                b = nl.load(v2[i, j])  # Use slicing to maintain dimensionality
+                a = nl.load(v1[i:i+1, j:j+1])  # Use slicing to maintain dimensionality
+                b = nl.load(v2[i:i+1, j:j+1])  # Use slicing to maintain dimensionality
                 
                 # Perform element-wise addition
                 c = nl.add(a, b)
-                
+
                 # Store the result back into the output tensor
-                nl.store(result[i, j], c)  # Store properly
+                nl.store(result[i:i+1, j:j+1], c)  # Use slicing to store properly
 
     return result

@@ -15,65 +15,111 @@ import json
 ######################
 # NKI Error Parser
 ######################
-def parse_error_output(error_output, error_parser):
-    """
-    Parse error output from test script and get detailed error information.
-    
-    Args:
-        error_output (str): The error output from the test script
-        error_parser (NKIErrorParser): Instance of the NKI error parser
+class NKIErrorParser:
+    """Parser for NKI error messages documentation."""
+    def __init__(self, error_doc_path):
+        """
+        Initialize the error parser with the path to the error documentation file.
+        Args:
+            error_doc_path (str): Path to the NKI error messages documentation file
+        """
+        self.error_doc_path = error_doc_path
+        self.error_database = self._parse_error_file()
         
-    Returns:
-        list: A list of dictionaries containing error codes and their documentation
-    """
-    # Extract error codes from the output
-    error_pattern = re.compile(r'ERROR: ([a-zA-Z0-9_-]+)', re.IGNORECASE)
-    error_matches = error_pattern.findall(error_output)
+    def _parse_error_file(self):
+        """
+        Parse the error documentation file and build an error database.
+        Returns:
+            dict: A dictionary mapping error codes to their documentation
+        """
+        if not os.path.exists(self.error_doc_path):
+            print(f"Error documentation file not found: {self.error_doc_path}")
+            return {}
+            
+        try:
+            with open(self.error_doc_path, 'r', encoding='utf-8') as file:
+                content = file.read()
+                
+                # Split the content by the error separator pattern
+                error_pattern = re.compile(r'ERROR: ([a-zA-Z0-9_-]+)\s*\n==+\n(.*?)(?=\n==+\nERROR:|$)', re.DOTALL)
+                errors = error_pattern.findall(content)
+                
+                error_database = {}
+                for error_code, error_content in errors:
+                    # Parse instructions and code examples
+                    instructions = []
+                    code_examples = []
+                    
+                    # Extract instructions
+                    instruction_pattern = re.compile(r'Instruction (\d+): (.*?)(?=\nInstruction \d+:|Code Example \d+:|$)', re.DOTALL)
+                    for _, instruction_text in instruction_pattern.findall(error_content):
+                        instructions.append(instruction_text.strip())
+                    
+                    # Extract code examples
+                    code_pattern = re.compile(r'Code Example (\d+):(.*?)(?=\nCode Example \d+:|$)', re.DOTALL)
+                    for _, code_text in code_pattern.findall(error_content):
+                        code_examples.append(code_text.strip())
+                    
+                    error_database[error_code] = {
+                        'instructions': instructions,
+                        'code_examples': code_examples,
+                        'raw_content': error_content.strip()
+                    }
+                
+                return error_database
+        except Exception as e:
+            print(f"Error parsing documentation file: {e}")
+            return {}
     
-    # Get unique error codes (avoid duplicates)
-    unique_errors = list(set(error_matches))
+    def get_error_info(self, error_code):
+        """
+        Get information about a specific error code.
+        Args:
+            error_code (str): The error code to look up
+        Returns:
+            dict: Error information including instructions and code examples
+        """
+        # Normalize error code by removing "ERROR: " prefix if present
+        if error_code.upper().startswith("ERROR: "):
+            error_code = error_code[7:]
+        
+        # Check if we have this error in our database
+        if error_code in self.error_database:
+            return self.error_database[error_code]
+        
+        # Try case-insensitive match if exact match fails
+        for key in self.error_database.keys():
+            if key.lower() == error_code.lower():
+                return self.error_database[key]
+        
+        return None
     
-    # Get documentation for each error
-    error_docs = []
-    for error_code in unique_errors:
-        error_info = error_parser.get_error_info(error_code)
-        if error_info:
-            error_docs.append({
-                'code': error_code,
-                'info': error_info
-            })
+    def list_all_errors(self):
+        """
+        List all error codes in the database.
+        Returns:
+            list: A list of all error codes
+        """
+        return list(self.error_database.keys())
     
-    return error_docs
+    def search_errors(self, keyword):
+        """
+        Search for errors containing a keyword.
+        Args:
+            keyword (str): Keyword to search for in error codes and content
+        Returns:
+            list: A list of matching error codes
+        """
+        matches = []
+        keyword = keyword.lower()
+        
+        for code, info in self.error_database.items():
+            if (keyword in code.lower() or
+                keyword in info['raw_content'].lower()):
+                matches.append(code)
+        
+        return matches
 
-def format_error_docs(error_docs):
-    """
-    Format error documentation for display, similar to function documentation.
-    
-    Args:
-        error_docs (list): List of error documentations
-        
-    Returns:
-        str: Formatted error documentation
-    """
-    if not error_docs:
-        return "No documented errors found in the output."
-    
-    output = []
-    for doc in error_docs:
-        output.append(f"ERROR: {doc['code']}")
-        output.append("=" * 50)
-        
-        error_info = doc['info']
-        
-        # Add raw content for comprehensive documentation
-        output.append(error_info['raw_content'])
-        output.append("")
-        
-        # Add a separator between errors
-        output.append("=" * 80)
-        output.append("")
-    
-    return "\n".join(output)
 ######################
 # Extraction and Utility Functions
 ######################
@@ -240,6 +286,93 @@ def load_function_documentation(docs_dir, function_names):
             except Exception as e:
                 print(f"Error loading documentation for {function_name}: {e}")
     print(documentation)
+    return "\n".join(documentation)
+
+######################
+# Error Documentation Functions
+######################
+
+def get_available_error_codes(error_parser):
+    """
+    Get a list of all available NKI error codes from the error parser.
+    
+    Args:
+        error_parser (NKIErrorParser): The error parser instance
+        
+    Returns:
+        list: A list of error codes
+    """
+    return error_parser.list_all_errors()
+
+def select_relevant_errors(llm, error_message, available_errors):
+    """
+    Use LLM to select relevant error codes from the error output.
+    
+    Args:
+        llm: The LLM instance
+        error_message (str): The error output message
+        available_errors (list): List of available error codes
+        
+    Returns:
+        list: List of selected error codes
+    """
+    error_selection_prompt = ChatPromptTemplate.from_template(
+        "You are helping to identify relevant NKI error codes from error output.\n\n"
+        "Here is the error output:\n{error_message}\n\n"
+        "Available error codes:\n{error_list}\n\n"
+        "Please identify the most relevant error codes in this output. Return your selection as a JSON list "
+        "of error codes (without the 'ERROR: ' prefix). For example: [\"INVALID_TYPE\", \"OUT_OF_BOUNDS\"]"
+    )
+    
+    # Format error list for display
+    error_list = "\n".join(sorted(available_errors))
+    
+    error_selection_chain = (
+        error_selection_prompt
+        | llm
+        | StrOutputParser()
+    )
+    
+    response = error_selection_chain.invoke({
+        "error_message": error_message,
+        "error_list": error_list
+    })
+    
+    # Parse the JSON response
+    try:
+        selected_errors = json.loads(response)
+        # Validate that all selected errors are in available_errors
+        valid_selections = [e for e in selected_errors if e in available_errors]
+        return valid_selections
+    except Exception as e:
+        print(f"Error parsing selected errors: {e}")
+        # Extract error codes using regex as fallback
+        pattern = re.compile(r'["\']([\w_-]+)["\']')
+        matches = pattern.findall(response)
+        valid_selections = [e for e in matches if e in available_errors]
+        return valid_selections
+
+def load_error_documentation(error_parser, error_codes):
+    """
+    Load documentation for the selected error codes.
+    
+    Args:
+        error_parser (NKIErrorParser): The error parser instance
+        error_codes (list): List of error codes to load
+        
+    Returns:
+        str: Combined error documentation text
+    """
+    documentation = []
+    
+    for error_code in error_codes:
+        error_info = error_parser.get_error_info(error_code)
+        if error_info:
+            documentation.append(f"ERROR: {error_code}")
+            documentation.append("=" * 50)
+            documentation.append(error_info['raw_content'])
+            documentation.append("\n" + "=" * 80 + "\n")
+    
     return "\n".join(documentation)
 
 ######################
@@ -424,25 +557,89 @@ def generate_kernel_with_direct_docs_and_error_loop(
                 log_to_file(trace_log_path, "NO ERRORS DETECTED. KERNEL GENERATION SUCCESSFUL.")
                 break
             
-            # Parse error message and get documentation
+            # Parse error message and get documentation using API-style approach
             print("Parsing error message for detailed documentation...")
-            error_docs = parse_error_output(error_message, error_parser)
-            error_documentation = format_error_docs(error_docs)
-            
-            # Log the parsed error documentation
-            log_to_file(trace_log_path, f"PARSED ERROR DOCUMENTATION:\n{error_documentation}\n")
-            print(f"Found {len(error_docs)} documented errors in the output")
-            
-            # Save error documentation to a separate file for this iteration
-            error_doc_file = f"{output_address}.error_doc.txt"
-            with open(error_doc_file, "w", encoding="utf-8") as f:
-                f.write(error_documentation)
-            print(f"Error documentation saved to {error_doc_file}")
-            
+            log_to_file(trace_log_path, "PARSING ERROR MESSAGE...")
+
+            # Get all available error codes
+            available_errors = get_available_error_codes(error_parser)
+            log_to_file(trace_log_path, f"AVAILABLE ERRORS:\n{', '.join(available_errors)}\n")
+
+            # Select relevant errors using the LLM
+            error_selection_prompt = ChatPromptTemplate.from_template(
+                "You are helping to identify relevant NKI error codes from error output.\n\n"
+                "Here is the error output:\n{error_message}\n\n"
+                "Available error codes:\n{error_list}\n\n"
+                "Please identify the most relevant error codes in this output. Return your selection as a JSON list "
+                "of error codes (without the 'ERROR: ' prefix). For example: [\"INVALID_TYPE\", \"OUT_OF_BOUNDS\"]\n\n"
+                "Your entire response must be a valid JSON array. Do not include any explanations, headers, or text before or after the JSON."
+            )
+
+            # Format error list for display
+            error_list = "\n".join(sorted(available_errors))
+
+            error_selection_chain = (
+                error_selection_prompt
+                | query_llm
+                | StrOutputParser()
+            )
+
+            error_response = error_selection_chain.invoke({
+                "error_message": error_message,
+                "error_list": error_list
+            })
+
+            # Clean up and parse the response
+            try:
+                # Clean the response and try to parse it
+                cleaned_response = extract_json_array(error_response)
+                
+                # Handle empty lists represented as empty string, "[]", etc.
+                if not cleaned_response or cleaned_response.isspace():
+                    selected_errors = []
+                elif cleaned_response == "[]":
+                    selected_errors = []
+                else:
+                    selected_errors = json.loads(cleaned_response)
+                
+                # Validate that all selected errors are in available_errors
+                selected_errors = [e for e in selected_errors if e in available_errors]
+                
+            except Exception as e:
+                print(f"Error parsing selected errors: {e}")
+                log_to_file(trace_log_path, f"ERROR PARSING SELECTED ERRORS: {e}\n")
+                
+                # Fallback mechanism: try to extract error codes using regex
+                try:
+                    pattern = re.compile(r'["\']([\w_-]+)["\']')
+                    matches = pattern.findall(error_response)
+                    selected_errors = [e for e in matches if e in available_errors]
+                    print(f"Using fallback: Extracted errors via regex: {', '.join(selected_errors)}")
+                    log_to_file(trace_log_path, f"FALLBACK: EXTRACTED ERRORS VIA REGEX: {', '.join(selected_errors)}\n")
+                except Exception as fallback_error:
+                    print(f"Fallback parsing also failed: {fallback_error}")
+                    log_to_file(trace_log_path, f"FALLBACK PARSING ALSO FAILED: {fallback_error}\n")
+                    selected_errors = []
+
+            print(f"Selected errors: {', '.join(selected_errors)}")
+            log_to_file(trace_log_path, f"SELECTED ERRORS:\n{', '.join(selected_errors)}\n")
+
+            # Load documentation for selected errors
+            error_documentation = load_error_documentation(error_parser, selected_errors)
+            log_to_file(trace_log_path, f"LOADED ERROR DOCUMENTATION:\n{error_documentation[:500]}...\n")
+
+            # Log the selected errors and their documentation
+            with open(f"{output_address}.error_selection", "w") as f:
+                f.write(f"ERROR MESSAGE:\n{error_message}\n\n")
+                f.write(f"SELECTED ERRORS:\n{', '.join(selected_errors)}\n\n")
+                f.write(f"ERROR DOCUMENTATION:\n{error_documentation}\n\n")
+
+            print(f"Error selection and documentation saved to {output_address}.error_selection")
+
             # If no documented errors found, use a fallback message
-            if not error_docs:
+            if not selected_errors:
                 error_documentation = "No specific documentation found for the errors in the output. Please analyze the error message carefully."
-            
+
             # Check if we need additional functions based on error
             print("Checking if additional functions are needed based on error...")
             
@@ -596,7 +793,7 @@ def generate_kernel_with_direct_docs_and_error_loop(
                 log_to_file(trace_log_path, error_msg)
                 continue
             
-            # Pause for review before the next iteration if needed
+           # Pause for review before the next iteration if needed
             if iteration < max_iterations - 1:
                 log_to_file(trace_log_path, "WAITING FOR USER INPUT TO CONTINUE TO NEXT ITERATION...")
                 input("Press Enter to continue to the next iteration (or Ctrl+C to exit)...")

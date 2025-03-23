@@ -1,33 +1,25 @@
 import boto3
 import json
 
-def get_chat_completion(system_prompt, user_prompt, model="anthropic.claude-v2", temperature=0.7):
+def get_chat_completion(system_prompt, user_prompt, model="anthropic.claude-3-5-sonnet-20241022-v2:0", temperature=0.7):
     """
-    Returns the completion for the given system prompt and user prompt using AWS Bedrock.
-    
-    Args:
-    system_prompt (str): The system prompt.
-    user_prompt (str): The user prompt.
-    model (str): The model to use. Defaults to "anthropic.claude-v2".
-    temperature (float): The temperature to use. Defaults to 0.7.
-    
-    Returns:
-    str: The completion.
+    Returns the completion for the given system prompt and user prompt using AWS Bedrock with Messages API.
     """
     # Set up the Bedrock client
     bedrock = boto3.client('bedrock-runtime')
     
-    # Construct the prompt for Claude-style models
-    full_prompt = f"System: {system_prompt}\n\nHuman: {user_prompt}\n\nAssistant:"
-    
-    # Prepare the request body
+    # Construct the request body for Messages API
     body = json.dumps({
-        "prompt": full_prompt,
-        "max_tokens_to_sample": 300,
+        "anthropic_version": "bedrock-2023-05-31",
+        "max_tokens": 300,
         "temperature": temperature,
-        "top_k": 250,
-        "top_p": 1,
-        "stop_sequences": ["\n\nHuman:"]
+        "system": system_prompt,
+        "messages": [
+            {
+                "role": "user",
+                "content": user_prompt
+            }
+        ]
     })
     
     # Invoke the model
@@ -39,12 +31,12 @@ def get_chat_completion(system_prompt, user_prompt, model="anthropic.claude-v2",
         
         # Parse the response
         response_body = json.loads(response['body'].read())
-        return response_body['completion']
-    
+        return response_body['content'][0]['text']
     except Exception as e:
         print(f"Error in Bedrock API call: {e}")
         return None
 
+        
 def run_bedrock_generation(system_prompt_address, user_prompt_address, output_address):
     """
     Runs the Bedrock API to generate a completion from a system prompt and a user prompt.

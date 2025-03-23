@@ -1,20 +1,21 @@
 ERROR MESSAGE:
 Reading LLM output from: /home/ubuntu/torch2nki/generation/langchain_single_pass/langchain_files/langchain_outputs/vector_add.txt
-Read 3240 characters from file
-First 100 characters: *** The error message indicates that the use of `nl.arange` in a 1D context is not supported. Specif...
-Extracted 1989 characters of kernel code
-First 100 characters of extracted code: import neuronxcc.nki.language as nl
-from neuronxcc import nki
+Read 1067 characters from file
+First 100 characters: ***We'll modify the kernel to explicitly create a 2D tensor with a single column by using NKI's inde...
+Extracted 893 characters of kernel code
+First 100 characters of extracted code: from neuronxcc import nki
+import neuronxcc.nki.language as nl
+import numpy as np
 
 @nki.jit
-def vector_add_kernel(v1, v2...
+def vecto...
 Detected function name: vector_add_kernel
 Wrote kernel code to: vector_add_kernel.py
-Also wrote to unique module: vector_add_kernel_1742646646.py
-Successfully imported module: vector_add_kernel_1742646646
+Also wrote to unique module: vector_add_kernel_1742724480.py
+Successfully imported module: vector_add_kernel_1742724480
 Using detected function: vector_add_kernel
 Running NKI kernel simulation...
-ERROR: Insufficient rank!
+ERROR: Only support multi-dimensional subscript to arange!
 
 Traceback (most recent call last):
   File "/home/ubuntu/torch2nki/evaluation/samples/test_vector_add.py", line 116, in main
@@ -28,9 +29,9 @@ Traceback (most recent call last):
   File "neuronxcc/nki/compiler/backends/neuron/TraceKernel.py", line 386, in neuronxcc.nki.compiler.backends.neuron.TraceKernel.TraceKernel.expand_kernel_with_ctx
   File "neuronxcc/nki/compiler/backends/neuron/TraceKernel.py", line 403, in neuronxcc.nki.compiler.backends.neuron.TraceKernel.TraceKernel.expand_kernel_with_ctx
   File "neuronxcc/nki/compiler/backends/neuron/TraceKernel.py", line 391, in neuronxcc.nki.compiler.backends.neuron.TraceKernel.TraceKernel.expand_kernel_with_ctx
-  File "/home/ubuntu/torch2nki/vector_add_kernel_1742646646.py", line 25, in vector_add_kernel
-    result = nl.zeros(v1.shape, dtype=v1.dtype)  # Correctly create a tensor without an extra dimension
-AssertionError: Insufficient rank!
+  File "/home/ubuntu/torch2nki/vector_add_kernel_1742724480.py", line 24, in vector_add_kernel
+    for i in nl.arange(size):
+RuntimeError: Only support multi-dimensional subscript to arange!
 
 
 SELECTED ERRORS:

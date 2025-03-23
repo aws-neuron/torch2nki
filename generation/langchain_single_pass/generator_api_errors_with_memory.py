@@ -1,17 +1,16 @@
 from langchain_openai import ChatOpenAI
-from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.output_parsers import StrOutputParser
 from langchain_aws import ChatBedrock
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from langchain_core.runnables import RunnablePassthrough
+from langchain.memory import ChatMessageHistory
+from langchain.memory import ConversationBufferMemory
 import os
 import re
 import traceback
 import datetime
 import json
-
-
-
 
 from extraction import extract_kernel_from_llm_response, extract_reasoning, run_script_and_save_output, read_file, write_file, log_to_file
 from doc_grabber import get_available_functions, select_relevant_functions, load_function_documentation
@@ -33,6 +32,7 @@ def generate_kernel_with_direct_docs_and_error_loop(
     """
     Generate a NKI kernel using direct function documentation access and iteratively 
     improve it based on error feedback with detailed error documentation.
+    Now with LangChain memory to maintain context between iterations.
     """
     print("Initializing components...")
     
@@ -61,16 +61,17 @@ def generate_kernel_with_direct_docs_and_error_loop(
         temperature=0.3
     )
     
-    # kernel_llm = ChatOpenAI(
-    #     model="gpt-4o-mini", 
-    #     temperature=0.85
-    # )
     kernel_llm = ChatBedrock(
         model_id="anthropic.claude-3-5-haiku-20241022-v1:0",
-        model_kwargs={"temperature": 0.85},  # Move temperature into model_kwargs
+        model_kwargs={"temperature": 0.85},
         region_name="us-west-2"
     )
 
+    # Initialize memory for the main kernel generation conversation
+    kernel_memory = ConversationBufferMemory(
+        memory_key="chat_history",
+        return_messages=True
+    )
 
     # Get list of available functions
     available_functions = get_available_functions(docs_dir)
@@ -111,32 +112,24 @@ def generate_kernel_with_direct_docs_and_error_loop(
         print("Generating initial kernel...")
         log_to_file(trace_log_path, "GENERATING INITIAL KERNEL...")
         
-        initial_generation_prompt = ChatPromptTemplate.from_template(
-            "{system_prompt}\n\n"
-            "Task: {user_prompt}\n\n"
-            "Function Documentation:\n{function_docs}\n\n"
-            "Generate a NKI kernel for the task."
-        )
+        # First message to memory is the system prompt
+        kernel_memory.chat_memory.add_message(SystemMessage(content=system_prompt))
+        
+        # Add the task and documentation as a user message
+        initial_prompt = f"Task: {user_prompt}\n\nFunction Documentation:\n{function_docs}\n\nGenerate a NKI kernel for the task."
+        kernel_memory.chat_memory.add_message(HumanMessage(content=initial_prompt))
         
         # Log the full prompt being sent to the LLM
-        full_prompt = initial_generation_prompt.format(
-            system_prompt=system_prompt,
-            user_prompt=user_prompt,
-            function_docs=function_docs
-        )
-        log_to_file(trace_log_path, f"FULL PROMPT TO LLM:\n{full_prompt}\n")
+        log_to_file(trace_log_path, f"FULL PROMPT TO LLM:\n{system_prompt}\n\n{initial_prompt}\n")
         
-        initial_kernel_chain = (
-            initial_generation_prompt 
-            | kernel_llm 
-            | StrOutputParser()
-        )
+        # Generate the initial response
+        initial_generation = kernel_llm.invoke([
+            SystemMessage(content=system_prompt),
+            HumanMessage(content=initial_prompt)
+        ]).content
         
-        initial_generation = initial_kernel_chain.invoke({
-            "system_prompt": system_prompt,
-            "user_prompt": user_prompt,
-            "function_docs": function_docs
-        })
+        # Add the LLM's response to memory
+        kernel_memory.chat_memory.add_message(AIMessage(content=initial_generation))
         
         # Save raw output
         write_file(output_address, initial_generation)
@@ -155,39 +148,33 @@ def generate_kernel_with_direct_docs_and_error_loop(
             log_to_file(trace_log_path, error_msg)
             return
         
-        # Create previous error context to track history
+        # Set up the error reinject prompt template with memory
+        enhanced_error_reinject_prompt = ChatPromptTemplate.from_messages([
+            SystemMessage(content=system_prompt),
+            MessagesPlaceholder(variable_name="chat_history"),
+            HumanMessage(content=(
+                "Previous error message:\n"
+                "--------------------------------------------------\n"
+                "{previous_error_message}\n"
+                "--------------------------------------------------\n\n"
+                "Function Documentation:\n"
+                "--------------------------------------------------\n"
+                "{function_docs}\n"
+                "--------------------------------------------------\n\n"
+                "Generate a new improved kernel for this task. Clearly explain your line of reasoning in one sentence, trying "
+                "to keep it as brief as possible. Focus on explaining what solution you are planning on using to "
+                "fix the error. Remember to keep it concise, but explanatory as you will be referencing this later to make sure "
+                "you are not trying to do the same fixes multiple times. "
+                "Your output should include the entire kernel code, NOT just individual fixes. I want to be able to run the code inside the ``` ```"
+                "The way I want your response structured is an explanation of your reasoning at the very start inside *** *** triple stars. "
+                "Then, immediatly after write the python nki code inside triple backticks ``` ```."
+                "I repeat, I only want your output to first be the line of reasoning inside triple stars, then the "
+                "nki kernel code inside triple backticks. Do NOT put the reasoning inside the nki kernel code."
+            ))
+        ])
+        
+        # Variable to store the previous error message
         previous_error_message = ""
-        previous_iteration_info = []
-        
-        # Create enhanced error re-injection prompt with error documentation and history
-        enhanced_error_reinject_prompt = ChatPromptTemplate.from_template(
-            "{system_prompt}\n\n"
-            "Task: {user_prompt}\n\n"
-            "{iteration_history}\n\n"
-            "Previous error message:\n"
-            "--------------------------------------------------\n"
-            "{previous_error_message}\n"
-            "--------------------------------------------------\n\n"
-            "Function Documentation:\n"
-            "--------------------------------------------------\n"
-            "{function_docs}\n"
-            "--------------------------------------------------\n\n"
-            "Generate a new improved kernel for this task. Clearly explain your line of reasoning in one sentence, trying"
-            "to keep it as brief as possible. Focus on explaining what solution you are planning on using to "
-            "fix the error. Remember to keep it concise, but explanatory as you will be referencing this later to make sure"
-            "you are not trying to do the same fixes multiple times. "
-            "Your output should include the entire kernel code, NOT just individual fixes. I want to be able to run the code inside the ``` ```"
-            "The way I want your response structured is an explanation of your reasoning at the very start inside *** *** triple stars. "
-            "Then, immediatly after write the python nki code inside triple backticks ``` ```."
-            "I repeat, I only want your output to first be the line of reasoning inside triple stars, then the "
-            "nki kernel code inside triple backticks. Do NOT put the reasoning inside the nki kernel code."
-        )
-        
-        enhanced_error_chain = (
-            enhanced_error_reinject_prompt 
-            | kernel_llm 
-            | StrOutputParser()
-        )
         
         # Iterative error correction loop
         for iteration in range(max_iterations):
@@ -255,6 +242,25 @@ def generate_kernel_with_direct_docs_and_error_loop(
                 "error_message": previous_error_message,
                 "error_list": error_list
             })
+
+            # Helper function to extract JSON array from text
+            def extract_json_array(text):
+                # Remove any non-JSON text before or after the array
+                text = text.strip()
+                # If text begins with characters before [, remove them
+                if '[' in text and text[0] != '[':
+                    text = text[text.find('['):]
+                # If text has characters after the closing ], remove them
+                if ']' in text and text[-1] != ']':
+                    text = text[:text.rfind(']')+1]
+                # If we still don't have a valid JSON looking text, try regex
+                if not (text.startswith('[') and text.endswith(']')):
+                    import re
+                    json_pattern = re.compile(r'\[.*?\]', re.DOTALL)
+                    json_match = json_pattern.search(text)
+                    if json_match:
+                        text = json_match.group(0)
+                return text
 
             # Clean up and parse the response
             try:
@@ -333,25 +339,6 @@ def generate_kernel_with_direct_docs_and_error_loop(
                 "all_functions": ", ".join(available_functions)
             })
 
-            # Clean up the response to ensure it's valid JSON
-            def extract_json_array(text):
-                # Remove any non-JSON text before or after the array
-                text = text.strip()
-                # If text begins with characters before [, remove them
-                if '[' in text and text[0] != '[':
-                    text = text[text.find('['):]
-                # If text has characters after the closing ], remove them
-                if ']' in text and text[-1] != ']':
-                    text = text[:text.rfind(']')+1]
-                # If we still don't have a valid JSON looking text, try regex
-                if not (text.startswith('[') and text.endswith(']')):
-                    import re
-                    json_pattern = re.compile(r'\[.*?\]', re.DOTALL)
-                    json_match = json_pattern.search(text)
-                    if json_match:
-                        text = json_match.group(0)
-                return text
-
             try:
                 # Clean the response and try to parse it
                 cleaned_response = extract_json_array(additional_response)
@@ -408,34 +395,59 @@ def generate_kernel_with_direct_docs_and_error_loop(
                     print(f"Fallback parsing also failed: {fallback_error}")
                     log_to_file(trace_log_path, f"FALLBACK PARSING ALSO FAILED: {fallback_error}\n")
             
-            # Create iteration history for context
-            iteration_history = ""
-            if previous_iteration_info:
-                iteration_history = "Previous iterations:\n"
-                for idx, info in enumerate(previous_iteration_info):
-                    iteration_history += f"Iteration {idx + 1}:\n{info}\n\n"
-            
-            # Generate improved kernel with error feedback, documentation, and history
+            # Generate improved kernel with error feedback and memory
             print(f"Generating improved kernel (iteration {iteration + 1})...")
             log_to_file(trace_log_path, f"GENERATING IMPROVED KERNEL (ITERATION {iteration + 1})...")
             
-            # Log the full error prompt being sent to the LLM
-            full_error_prompt = enhanced_error_reinject_prompt.format(
-                system_prompt=system_prompt,
-                user_prompt=user_prompt,
-                iteration_history=iteration_history,
-                previous_error_message=previous_error_message,
-                function_docs=function_docs
+            # Add the error message and documentation to the conversation memory
+            error_and_docs_prompt = (
+                f"Previous error message:\n"
+                f"--------------------------------------------------\n"
+                f"{previous_error_message}\n"
+                f"--------------------------------------------------\n\n"
+                f"Function Documentation:\n"
+                f"--------------------------------------------------\n"
+                f"{function_docs}\n"
+                f"--------------------------------------------------\n\n"
+                f"Generate a new improved kernel for this task. Clearly explain your line of reasoning in one sentence, trying "
+                f"to keep it as brief as possible. Focus on explaining what solution you are planning on using to "
+                f"fix the error. Remember to keep it concise, but explanatory as you will be referencing this later to make sure "
+                f"you are not trying to do the same fixes multiple times. "
+                f"Your output should include the entire kernel code, NOT just individual fixes. I want to be able to run the code inside the ``` ```"
+                f"The way I want your response structured is an explanation of your reasoning at the very start inside *** *** triple stars. "
+                f"Then, immediatly after write the python nki code inside triple backticks ``` ```."
+                f"I repeat, I only want your output to first be the line of reasoning inside triple stars, then the "
+                f"nki kernel code inside triple backticks. Do NOT put the reasoning inside the nki kernel code."
             )
-            log_to_file(trace_log_path, f"FULL ERROR PROMPT TO LLM:\n{full_error_prompt}\n")
             
-            improved_generation = enhanced_error_chain.invoke({
-                "system_prompt": system_prompt,
-                "user_prompt": user_prompt,
-                "iteration_history": iteration_history,
-                "previous_error_message": previous_error_message,
-                "function_docs": function_docs
-            })
+            
+            # Add user message to memory
+            kernel_memory.chat_memory.add_message(HumanMessage(content=error_and_docs_prompt))
+            
+            # Log the prompt being sent to the LLM
+            log_to_file(trace_log_path, f"ERROR REINJECT PROMPT:\n{error_and_docs_prompt}\n")
+            
+            # Get chat history from memory
+            chat_history = kernel_memory.load_memory_variables({})["chat_history"]
+
+            # Create a new message list that explicitly starts with the system message
+            # This ensures the system message is always first, regardless of what's in memory
+            messages = [SystemMessage(content=system_prompt)]
+
+            # Then add the rest of the messages, but filter out any existing system messages
+            # to avoid duplication
+            for msg in chat_history:
+                if not isinstance(msg, SystemMessage):
+                    messages.append(msg)
+
+            # Finally, add the new human message
+            messages.append(HumanMessage(content=error_and_docs_prompt))
+
+            # Generate improved response using the properly ordered message list
+            improved_generation = kernel_llm.invoke(messages).content
+            
+            # Add AI response to memory
+            kernel_memory.chat_memory.add_message(AIMessage(content=improved_generation))
             
             # Save the raw output
             write_file(output_address, improved_generation)
@@ -456,9 +468,6 @@ def generate_kernel_with_direct_docs_and_error_loop(
                     reasoning_file.write("\n\n")
                 print("Reasoning extracted and appended to reasoning log.")
                 log_to_file(trace_log_path, f"EXTRACTED REASONING:\n{reasoning_text}\n")
-                
-                # Add reasoning to iteration history
-                previous_iteration_info.append(f"Reasoning: {reasoning_text}")
                 print(reasoning_text)
             else:
                 print("No reasoning found in the output.")
@@ -470,9 +479,6 @@ def generate_kernel_with_direct_docs_and_error_loop(
                 write_file(kernel_module_path, kernel_code)
                 print(f"Updated kernel code saved to {kernel_module_path}")
                 log_to_file(trace_log_path, f"UPDATED KERNEL CODE:\n{kernel_code}\n")
-                
-                # Add the code snippet to the iteration history
-                previous_iteration_info.append(f"Generated code: {kernel_code[:500]}...")
             except ValueError as e:
                 error_msg = f"Error extracting kernel code: {e}"
                 print(error_msg)
@@ -483,12 +489,8 @@ def generate_kernel_with_direct_docs_and_error_loop(
             log_to_file(trace_log_path, f"RUNNING TEST SCRIPT ON UPDATED CODE: {test_script_path}")
             error_message = run_script_and_save_output(test_script_path, test_script_output)
             log_to_file(trace_log_path, f"TEST SCRIPT OUTPUT:\n{error_message}\n")
-
-            # Add test results to iteration history
-            previous_iteration_info.append(f"Test result: {error_message[:500]}...")
             
-            # NEW FEATURE: Generate a report on the result of the changes
-            # NEW FEATURE: Generate a report on the result of the changes
+            # Generate a report on the result of the changes
             if iteration > 0:  # Skip for the first iteration as we don't have a previous solution to compare
                 print("Generating report on the results of the changes...")
                 log_to_file(trace_log_path, "GENERATING REPORT ON RESULTS OF CHANGES...")
@@ -572,8 +574,9 @@ def generate_kernel_with_direct_docs_and_error_loop(
                 # Log the report
                 log_to_file(trace_log_path, f"CHANGE REPORT:\ncorrect: {correct}\nreport: {report}\n")
                 
-                # Add report to iteration history
-                previous_iteration_info.append(f"Change report: correct={correct}, report={report}")
+                # Add the report to memory as a system message
+                report_message = f"Change Report for Iteration {iteration + 1}: correct={correct}, report={report}"
+                kernel_memory.chat_memory.add_message(SystemMessage(content=report_message))
                 
                 # Update the previous error message for the next iteration
                 previous_error_message = error_message
@@ -589,8 +592,8 @@ def generate_kernel_with_direct_docs_and_error_loop(
                     log_to_file(trace_log_path, "WAITING FOR USER INPUT TO CONTINUE TO NEXT ITERATION...")
                     input("Press Enter to continue to the next iteration (or Ctrl+C to exit)...")
 
-                    print("Kernel generation process completed.")
-                    log_to_file(trace_log_path, "KERNEL GENERATION PROCESS COMPLETED.")
+        print("Kernel generation process completed.")
+        log_to_file(trace_log_path, "KERNEL GENERATION PROCESS COMPLETED.")
 
     except Exception as e:
         error_details = traceback.format_exc()

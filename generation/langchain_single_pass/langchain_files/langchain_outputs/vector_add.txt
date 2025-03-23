@@ -1,63 +1,26 @@
-The error message indicates that there is an issue with the usage of `nl.arange` in 1D contexts, which is not supported in the NKI framework. Specifically, it states that "Insufficient rank!" arises when attempting to index a tensor using a 1D arange. The `nl.arange` function should be used in a way that results in a 2D array (or higher), as the NKI expects at least two dimensions for indexing operations.
+Error generating kernel: An error occurred (ThrottlingException) when calling the InvokeModel operation (reached max retries: 4): Too many tokens, please wait before trying again.
 
-In the original kernel, I have attempted to reshape the index produced by `nl.arange` with `[:, None]`, which is not valid in this context. Instead, I should directly use `nl.arange` to create the necessary indexing without that reshaping. Additionally, when creating the output tensor, I should ensure that it adheres to the correct dimensional requirements.
-
-To fix this, I will:
-1. Remove the `[:, None]` reshape for `nl.arange`.
-2. Use `nl.arange` directly as indices in the `load` and `store` calls.
-3. Use `nl.zeros` to create the output tensor in a way that correctly matches the expected dimensions for the NKI.
-
-Here's the revised kernel code:
-
-```python
-import neuronxcc.nki.language as nl
-from neuronxcc import nki
-
-@nki.jit
-def vector_add_kernel(v1, v2):
-    """
-    Vector addition kernel that performs element-wise addition of two input tensors.
-    
-    Parameters:
-    v1: Input tensor (first vector)
-    v2: Input tensor (second vector)
-    
-    Returns:
-    result: Output tensor containing the sum of v1 and v2
-    """
-    # Validate that the input vectors have the same shape
-    if v1.shape != v2.shape:
-        raise ValueError("Input vectors must have the same shape")
-    
-    # Ensure both tensors have a valid shape for NKI
-    if len(v1.shape) < 1 or len(v2.shape) < 1:
-        raise ValueError("Input vectors must have at least one dimension")
-
-    # Create an output tensor of the same shape with zeros
-    result = nl.zeros(((v1.shape,),0), dtype=v1.dtype)  # Correctly create a tensor without an extra dimension
-
-    # Check if the input tensors are 1D or 2D and handle accordingly
-    if len(v1.shape) == 1:  # 1D case
-        for i in nl.arange(v1.shape[0]):  # No reshaping here, keep it as 1D
-            a = nl.load(v1[i])  # Load the element from the first tensor
-            b = nl.load(v2[i])  # Load the element from the second tensor
-            c = nl.add(a, b)  # Perform element-wise addition
-            nl.store(result[i], c)  # Store the result
-
-    else:  # 2D case
-        for i in nl.arange(v1.shape[0]):  # No reshaping for 1D arange
-            for j in nl.arange(v1.shape[1]):  # No reshaping for 1D arange
-                # Load the elements from the input tensors
-                a = nl.load(v1[i, j])  # Use slicing to maintain dimensionality
-                b = nl.load(v2[i, j])  # Use slicing to maintain dimensionality
-                
-                # Perform element-wise addition
-                c = nl.add(a, b)
-                
-                # Store the result back into the output tensor
-                nl.store(result[i, j], c)  # Store properly
-
-    return result
-```
-
-*** I am making these changes to align with the NKI framework's requirement of using `nl.arange` without reshaping to avoid the "Insufficient rank!" error. This should resolve the indexing issue and allow the vector addition kernel to function correctly. ***
+Traceback (most recent call last):
+  File "/home/ubuntu/torch2nki/generation/langchain_single_pass/generator_api_errors_with_memory.py", line 446, in generate_kernel_with_direct_docs_and_error_loop
+    improved_generation = kernel_llm.invoke(messages).content
+  File "/opt/aws_neuronx_venv_pytorch_2_5/lib/python3.10/site-packages/langchain_core/language_models/chat_models.py", line 307, in invoke
+    self.generate_prompt(
+  File "/opt/aws_neuronx_venv_pytorch_2_5/lib/python3.10/site-packages/langchain_core/language_models/chat_models.py", line 843, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+  File "/opt/aws_neuronx_venv_pytorch_2_5/lib/python3.10/site-packages/langchain_core/language_models/chat_models.py", line 683, in generate
+    self._generate_with_cache(
+  File "/opt/aws_neuronx_venv_pytorch_2_5/lib/python3.10/site-packages/langchain_core/language_models/chat_models.py", line 908, in _generate_with_cache
+    result = self._generate(
+  File "/opt/aws_neuronx_venv_pytorch_2_5/lib/python3.10/site-packages/langchain_aws/chat_models/bedrock.py", line 721, in _generate
+    completion, tool_calls, llm_output = self._prepare_input_and_invoke(
+  File "/opt/aws_neuronx_venv_pytorch_2_5/lib/python3.10/site-packages/langchain_aws/llms/bedrock.py", line 971, in _prepare_input_and_invoke
+    raise e
+  File "/opt/aws_neuronx_venv_pytorch_2_5/lib/python3.10/site-packages/langchain_aws/llms/bedrock.py", line 956, in _prepare_input_and_invoke
+    response = self.client.invoke_model(**request_options)
+  File "/opt/aws_neuronx_venv_pytorch_2_5/lib/python3.10/site-packages/botocore/client.py", line 570, in _api_call
+    return self._make_api_call(operation_name, kwargs)
+  File "/opt/aws_neuronx_venv_pytorch_2_5/lib/python3.10/site-packages/botocore/context.py", line 124, in wrapper
+    return func(*args, **kwargs)
+  File "/opt/aws_neuronx_venv_pytorch_2_5/lib/python3.10/site-packages/botocore/client.py", line 1031, in _make_api_call
+    raise error_class(parsed_response, operation_name)
+botocore.errorfactory.ThrottlingException: An error occurred (ThrottlingException) when calling the InvokeModel operation (reached max retries: 4): Too many tokens, please wait before trying again.

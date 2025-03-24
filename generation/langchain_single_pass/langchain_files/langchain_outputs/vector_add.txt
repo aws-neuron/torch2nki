@@ -1,26 +1,38 @@
-Error generating kernel: An error occurred (ThrottlingException) when calling the InvokeModel operation (reached max retries: 4): Too many tokens, please wait before trying again.
+*** The "Insufficient rank!" error continues to suggest that the dimensionality of the output tensor is not meeting the expectations of the NKI framework during kernel execution. To address this issue, I will create the result tensor with a shape of `(size,)` and ensure that I properly handle the indexing during storage operations in a way that maintains the expected rank of values being stored. Furthermore, I will ensure the computation involves scalar values to simplify the operation and avoid rank-related complications. ***
 
-Traceback (most recent call last):
-  File "/home/ubuntu/torch2nki/generation/langchain_single_pass/generator_api_errors_with_memory.py", line 446, in generate_kernel_with_direct_docs_and_error_loop
-    improved_generation = kernel_llm.invoke(messages).content
-  File "/opt/aws_neuronx_venv_pytorch_2_5/lib/python3.10/site-packages/langchain_core/language_models/chat_models.py", line 307, in invoke
-    self.generate_prompt(
-  File "/opt/aws_neuronx_venv_pytorch_2_5/lib/python3.10/site-packages/langchain_core/language_models/chat_models.py", line 843, in generate_prompt
-    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
-  File "/opt/aws_neuronx_venv_pytorch_2_5/lib/python3.10/site-packages/langchain_core/language_models/chat_models.py", line 683, in generate
-    self._generate_with_cache(
-  File "/opt/aws_neuronx_venv_pytorch_2_5/lib/python3.10/site-packages/langchain_core/language_models/chat_models.py", line 908, in _generate_with_cache
-    result = self._generate(
-  File "/opt/aws_neuronx_venv_pytorch_2_5/lib/python3.10/site-packages/langchain_aws/chat_models/bedrock.py", line 721, in _generate
-    completion, tool_calls, llm_output = self._prepare_input_and_invoke(
-  File "/opt/aws_neuronx_venv_pytorch_2_5/lib/python3.10/site-packages/langchain_aws/llms/bedrock.py", line 971, in _prepare_input_and_invoke
-    raise e
-  File "/opt/aws_neuronx_venv_pytorch_2_5/lib/python3.10/site-packages/langchain_aws/llms/bedrock.py", line 956, in _prepare_input_and_invoke
-    response = self.client.invoke_model(**request_options)
-  File "/opt/aws_neuronx_venv_pytorch_2_5/lib/python3.10/site-packages/botocore/client.py", line 570, in _api_call
-    return self._make_api_call(operation_name, kwargs)
-  File "/opt/aws_neuronx_venv_pytorch_2_5/lib/python3.10/site-packages/botocore/context.py", line 124, in wrapper
-    return func(*args, **kwargs)
-  File "/opt/aws_neuronx_venv_pytorch_2_5/lib/python3.10/site-packages/botocore/client.py", line 1031, in _make_api_call
-    raise error_class(parsed_response, operation_name)
-botocore.errorfactory.ThrottlingException: An error occurred (ThrottlingException) when calling the InvokeModel operation (reached max retries: 4): Too many tokens, please wait before trying again.
+```python
+import neuronxcc.nki.language as nl
+from neuronxcc import nki
+
+@nki.jit
+def vector_add_kernel(v1, v2):
+    """
+    Kernel function to perform element-wise addition of two vectors using the AWS NKI.
+    
+    Parameters:
+    v1: Input vector 1 (1D tensor)
+    v2: Input vector 2 (1D tensor)
+
+    Returns:
+    result: A tensor containing the element-wise sum of v1 and v2.
+    """
+    # Get the size of the input vectors
+    size = v1.shape[0]
+
+    # Create an output tensor of zeros of shape (size,) and dtype matching inputs
+    result = nl.zeros((size,), dtype=v1.dtype)
+
+    # Define a loop over the range of the vector size
+    for i in nl.arange(size):
+        # Load each element from input vectors directly as scalars
+        a = nl.load(v1[i])  # Load the i-th element from v1
+        b = nl.load(v2[i])  # Load the i-th element from v2
+        
+        # Perform element-wise addition
+        c = nl.add(a, b)
+        
+        # Store the computed result directly into the output tensor
+        nl.store(result[i], c)  # Store the result correctly in the result tensor
+
+    return result
+```

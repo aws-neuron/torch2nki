@@ -1,5 +1,5 @@
 UPDATED SELECTED FUNCTIONS:
-add, zeros, load, store, arange, affine_range, mgrid, sequential_range, static_range
+add, arange, zeros, load, store, affine_range, mgrid, sequential_range, static_range
 
 ADDED FUNCTIONS:
 affine_range, mgrid, sequential_range, static_range

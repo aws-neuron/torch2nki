@@ -1,35 +1,34 @@
-from neuronxcc import nki
 import neuronxcc.nki.language as nl
-import numpy as np
+from neuronxcc import nki
 
 @nki.jit
 def vector_add_kernel(v1, v2):
     """
-    Vector addition kernel using AWS Neural Kernel Interface (NKI)
+    Kernel function to perform element-wise addition of two vectors using the AWS NKI.
     
-    Args:
-        v1 (nki.Tensor): First input vector
-        v2 (nki.Tensor): Second input vector
-    
+    Parameters:
+    v1: Input vector 1 (1D tensor)
+    v2: Input vector 2 (1D tensor)
+
     Returns:
-        nki.Tensor: Resulting vector after element-wise addition
+    result: A tensor containing the element-wise sum of v1 and v2.
     """
-    # Get the size of the input vector
+    # Get the size of the input vectors
     size = v1.shape[0]
-    
-    # Create output tensor with explicit 2D shape
-    result = nl.zeros((size, 1), dtype=v1.dtype)
-    
-    # Use indexing to perform element-wise addition
+
+    # Create an output tensor of zeros of shape (size,) and dtype matching inputs
+    result = nl.zeros((size,), dtype=v1.dtype)
+
+    # Define a loop over the range of the vector size
     for i in nl.arange(size):
-        # Load individual elements
-        a = nl.load(v1[i:i+1])
-        b = nl.load(v2[i:i+1])
+        # Load each element from input vectors directly as scalars
+        a = nl.load(v1[i])  # Load the i-th element from v1
+        b = nl.load(v2[i])  # Load the i-th element from v2
         
-        # Add elements
+        # Perform element-wise addition
         c = nl.add(a, b)
         
-        # Store result
-        nl.store(result[i:i+1, 0:1], c)
-    
+        # Store the computed result directly into the output tensor
+        nl.store(result[i], c)  # Store the result correctly in the result tensor
+
     return result

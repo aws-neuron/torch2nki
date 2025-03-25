@@ -23,7 +23,7 @@ def get_embedding(text):
 vectors_to_upsert = []
 
 # 4. Loop through all .txt files in your folder
-folder_path = "/Users/rgopalam/Desktop/AWS-NKI/torch2nki/documentation/nki_documentation/nki_language_apis_parsed"
+folder_path = "/Users/rgopalam/Desktop/AWS-NKI/torch2nki/documentation/nki_documentation/nki_language_apis_parsed" #TODO: replace with users directory
 for filename in os.listdir(folder_path):
     if filename.endswith(".txt"):
         file_path = os.path.join(folder_path, filename)

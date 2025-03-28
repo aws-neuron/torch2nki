@@ -1,0 +1,20 @@
+nki.language.rms_norm
+
+Signature:
+nki.language.rms_norm(x, w, axis, n, epsilon=1e-06, *, dtype=None, compute_dtype=None, mask=None, **kwargs)
+
+Description:
+Apply Root Mean Square Layer Normalization.
+
+Parameters:
+x – input tile
+w – weight tile
+axis – axis along which to compute the root mean square (rms) value
+n – total number of values to calculate rms
+epsilon – epsilon value used by rms calculation to avoid divide-by-zero
+dtype – (optional) data type to cast the output type to (see Supported Data Types for more information); if not specified, it will default to be the same as the data type of the input tile.
+compute_dtype – (optional) dtype for the internal computation - currently `dtype` and `compute_dtype` behave the same, both sets internal compute and return dtype.
+mask – (optional) a compile-time constant predicate that controls whether/how this instruction is executed (see NKI API Masking for details)
+
+Returns:
+`` x / RMS(x) * w ``

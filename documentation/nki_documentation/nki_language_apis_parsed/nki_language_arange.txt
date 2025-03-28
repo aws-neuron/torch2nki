@@ -1,0 +1,11 @@
+nki.language.arange
+
+Signature:
+nki.language.arange(*args)
+
+Description:
+Return contiguous values within a given interval, used for indexing a tensor to define a tile.
+((Similar to numpy.arange))
+arange can be called as:
+arange(stop): Values are generated within the half-open interval [0, stop) (the interval including zero, excluding stop).
+arange(start, stop): Values are generated within the half-open interval [start, stop) (the interval including start, excluding stop).

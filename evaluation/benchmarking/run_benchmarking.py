@@ -5,16 +5,32 @@ import json
 # Add parent directory to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import benchmarking_tools
-from edgeops import edgeops_tests
-from elementwise import elementwise_tests
-from multielement import multielement_tests
-from products import products_tests
-from matrixops import matrixops_tests
-from mlops import mlops_tests
+# import benchmarking_tools
+# from edgeops import edgeops_tests
+# from elementwise import elementwise_tests
+# from multielement import multielement_tests
+# from products import products_tests
+# from matrixops import matrixops_tests
+# from mlops import mlops_tests
+from absl import flags, app
 
-def main():
-#Elementwise operators
+FLAGS = flags.FLAGS
+flags.DEFINE_string("operator", "", "name of pytorch operator to test")
+
+def main(_):
+    print(f'ran {FLAGS.operator}')
+    with open("results.json", "w") as f:
+        json.dump({
+            "edgeops": 1,
+            "elementwise": 2,
+            "multi_element": 3,
+            "products": 4,
+            "matrixops": 5,
+            "mlops": 6
+        }, f, indent=4)
+        
+    """
+    #Elementwise operators
     elementwise_operators = [
         "add", "sub", "mul", "div", "abs", "exp", "log", "sqrt", "rsqrt",
         "pow", "sin", "cos", "tan", "asin", "acos", "atan", "sinh", "cosh",
@@ -92,10 +108,12 @@ def main():
             "products": products_ops_dict,
             "matrixops": matrixops_ops_dict,
             "mlops": mlops_ops_dict
-        }, f, indent=4)
+        }, f, indent=4)"
+
+    """
 
 if __name__ == "__main__":
-    main()
+    app.run(main)
 
 
 

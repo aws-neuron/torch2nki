@@ -1,0 +1,16 @@
+nki.language.logical_not
+
+Signature:
+nki.language.logical_not(x, *, dtype=<class 'bool'>, mask=None, **kwargs)
+
+Description:
+Element-wise boolean result of NOT x.
+((Similar to numpy.logical_not))
+
+Parameters:
+x – a tile.
+dtype – (optional) data type to cast the output type to (see Supported Data Types for more information); if not specified, it will default to be the same as the data type of the input tile.
+mask – (optional) a compile-time constant predicate that controls whether/how this instruction is executed (see NKI API Masking for details)
+
+Returns:
+a tile with boolean result of NOT x element-wise.

@@ -1,0 +1,13 @@
+nki.language.static_range
+
+Signature:
+nki.language.static_range(*args)
+
+Description:
+Create a sequence of numbers for use as loop iterators in NKI, resulting in a fully unrolled loop. Unlike affine_range or sequential_range, Neuron compiler will fully unroll the loop during NKI kernel tracing.
+
+Notes:
+Due to loop unrolling, compilation time may go up significantly compared to affine_range or sequential_range.
+On-chip memory (SBUF) usage may also go up significantly compared to affine_range or sequential_range.
+No loop-level optimizations will be performed in the compiler.
+static_range should only be used as a fall-back option for debugging purposes when affine_range or sequential_range is giving functionally incorrect results or undesirable performance characteristics.

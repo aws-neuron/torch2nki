@@ -53,4 +53,4 @@ def run_o4(system_prompt_adress, user_prompt_adress, output_adress):
 if __name__ == "__main__":
 
     #Run the o4 generator
-    run_o4("../prompts/system_prompt_naive.txt", "../prompts/user_prompt_add.txt", "../generation/samples/vector_add.txt")
+    run_o4("/home/ubuntu/torch2nki/prompts/system_prompt_naive.txt", "/home/ubuntu/torch2nki/prompts/user_prompt_add.txt", "/home/ubuntu/torch2nki/generation/samples/vector_add.txt")

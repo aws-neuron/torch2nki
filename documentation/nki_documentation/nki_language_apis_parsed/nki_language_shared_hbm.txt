@@ -1,0 +1,7 @@
+nki.language.shared_hbm
+
+Signature:
+nki.language.shared_hbm = Ellipsis
+
+Description:
+Shared HBM - Visible to all kernel instances in the SPMD grid

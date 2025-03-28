@@ -1,0 +1,13 @@
+nki.language.shared_constant
+
+Signature:
+nki.language.shared_constant(constant, dtype=None, **kwargs)
+
+Description:
+Create a new tensor filled with the data specified by data array.
+
+Parameters:
+constant – the constant data to be filled into a tensor
+
+Returns:
+a tensor which contains the constant data

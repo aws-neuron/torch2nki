@@ -1,0 +1,171 @@
+USER PROMPT:
+Generate a custom kernel for vector addition a using AWS Neural Kernel Interface (NKI). The kernel should:
+- Use the proper NKI API integration.
+- Follow best practices for compilation.
+- Be well-structured, modular, and maintainable.
+
+
+Here is a python implementation for it:
+
+def vector_add(v1, v2):
+    """
+    Adds two vectors element-wise using an explicit loop.
+    :param v1: List of numbers (first vector)
+    :param v2: List of numbers (second vector)
+    :return: List representing the sum of the two vectors
+    """
+    if len(v1) != len(v2):
+        raise ValueError("Vectors must be of the same length")
+    
+    result = []
+    for i in range(len(v1)):
+        result.append(v1[i] + v2[i])
+    
+    return result
+
+Don't use libnrt.so.1
+
+Make sure to return the output. Make sure to import nki: from neuronxcc import nki
+
+
+GENERATED QUERY:
+### Key Technical Concepts for NKI Kernel
+- NKI API Integration
+- Vector Operations
+- Memory Management
+- Data Parallelism
+- Kernel Compilation
+- Error Handling
+- Performance Optimization
+- Modularity and Maintainability
+
+### Specific Vector Operations to Implement
+- Element-wise addition
+- Element-wise subtraction
+- Element-wise multiplication
+- Element-wise division
+- Dot product
+- Cross product
+
+### Custom Kernel for Vector Addition using AWS NKI
+
+```python
+from neuronxcc import nki
+
+def vector_add_kernel(v1, v2):
+    """
+    Custom kernel for element-wise vector addition using NKI.
+    :param v1: List of numbers (first vector)
+    :param v2: List of numbers (second vector)
+    :return: List representing the sum of the two vectors
+    """
+    if len(v1) != len(v2):
+        raise ValueError("Vectors must be of the same length")
+
+    # Initialize NKI
+    nki.init()
+
+    # Allocate memory for result
+    result = nki.allocate(len(v1))
+
+    # NKI kernel execution
+    nki.execute('vector_add', v1, v2, result)
+
+    # Retrieve result from NKI
+    output = nki.retrieve(result)
+
+    # Cleanup
+    nki.free(result)
+
+    return output
+
+# Example usage
+v1 = [1, 2, 3]
+v2 = [4, 5, 6]
+result = vector_add_kernel(v1, v2)
+print(result)  # Output: [5, 7, 9]
+```
+
+### Notes
+- Ensure that the `vector_add` function is implemented in the NKI environment as a kernel.
+- Follow best practices for error handling and memory management.
+- The kernel should be structured to allow easy modifications and enhancements.
+
+RETRIEVED CONTEXT:
+Doc1: No title - nki.language.add
+
+Signature:
+nki.language.add(x, y, *, dtype=None, mask=None, **kwargs)
+
+Description:
+Add the inputs, element-wise.
+((Similar to numpy.add))
+
+Parameters:
+x – a tile or a scalar value.
+y – a tile or a scalar value. x.shape and y.shape must be broadcastable to a common shape, that will become the shape of the output.
+dtype – (optional) data type to cast the output type to (see Supported Data Types for more information); if not specified, it will default to be the same as the data t...
+
+Doc2: No title - nki.language.sum
+
+Signature:
+nki.language.sum(x, axis, *, dtype=None, mask=None, keepdims=False, **kwargs)
+
+Description:
+Sum of elements along the specified axis (or axes) of the input.
+((Similar to numpy.sum))
+
+Parameters:
+x – a tile.
+axis – int or tuple/list of ints. The axis (or axes) along which to operate; must be free dimensions, not partition dimension (0); can only be the last contiguous dim(s) of the tile: [1], [1,2], [1,2,3], [1,2,3,4]
+dtype – (optional) data type to cast the output ty...
+
+Doc3: No title - nki.language.all_reduce
+
+Signature:
+nki.language.all_reduce(x, op, program_axes, *, dtype=None, mask=None, parallel_reduce=True, asynchronous=False, **kwargs)
+
+Description:
+Apply reduce operation over multiple SPMD programs.
+
+Parameters:
+x – a tile.
+op – numpy ALU operator to use to reduce over the input tile.
+program_axes – a single axis or a tuple of axes along which the reduction operation is performed.
+dtype – (optional) data type to cast the output type to (see Supported Data Types for more...
+
+Doc4: No title - nki.language.nc
+
+Signature:
+nki.language.nc = Ellipsis
+
+Description:
+Create a logical neuron core dimension in launch grid.
+The instances of spmd kernel will be distributed to different physical neuron cores on the annotated dimension.
+
+Example:
+# Let compiler decide how to distribute the instances of spmd kernel
+c = kernel[2, 2](a, b)
+
+import neuronxcc.nki.language as nl
+
+# Distribute the kernel to physical neuron cores around the first dimension
+# of the spmd grid.
+c = kernel[nl.nc(2), 2](a, b...
+
+Doc5: No title - nki.language.subtract
+
+Signature:
+nki.language.subtract(x, y, *, dtype=None, mask=None, **kwargs)
+
+Description:
+Subtract the inputs, element-wise.
+((Similar to numpy.subtract))
+
+Parameters:
+x – a tile or a scalar value.
+y – a tile or a scalar value. x.shape and y.shape must be broadcastable to a common shape, that will become the shape of the output.
+dtype – (optional) data type to cast the output type to (see Supported Data Types for more information); if not specified, it will default to be th...
+
+
+

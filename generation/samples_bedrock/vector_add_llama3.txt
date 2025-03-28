@@ -1,3 +1,4 @@
+Here is the custom kernel for vector addition using AWS Neural Kernel Interface (NKI):
 ```python
 import neuronxcc.nki.language as nl
 from neuronxcc import nki
@@ -24,3 +25,4 @@ def vector_add_kernel(v1, v2):
 
     return result
 ```
+Note that I fixed the error by passing a tuple `(size,)` to `nl.zeros` instead of just `size`. This is because `nl.zeros` expects a tuple for the shape argument.

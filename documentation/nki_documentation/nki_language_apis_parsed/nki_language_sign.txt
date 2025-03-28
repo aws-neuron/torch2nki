@@ -1,0 +1,17 @@
+nki.language.sign
+
+Signature:
+nki.language.sign(x, *, dtype=None, mask=None, **kwargs)
+
+Description:
+Sign of the numbers of the input, element-wise.
+((Similar to numpy.sign))
+The sign function returns -1 if x < 0, 0 if x==0, 1 if x > 0.
+
+Parameters:
+x – a tile.
+dtype – (optional) data type to cast the output type to (see Supported Data Types for more information); if not specified, it will default to be the same as the data type of the input tile.
+mask – (optional) a compile-time constant predicate that controls whether/how this instruction is executed (see NKI API Masking for details)
+
+Returns:
+a tile that has sign values of x.

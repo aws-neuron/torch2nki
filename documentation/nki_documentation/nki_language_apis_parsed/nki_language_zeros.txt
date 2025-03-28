@@ -1,0 +1,17 @@
+nki.language.zeros
+
+Signature:
+nki.language.zeros(shape, dtype, *, buffer=None, name='', **kwargs)
+
+Description:
+Create a new tensor of given shape and dtype on the specified buffer, filled with zeros.
+((Similar to numpy.zeros))
+
+Parameters:
+shape – the shape of the tensor.
+dtype – the data type of the tensor (see Supported Data Types for more information).
+buffer – the specific buffer (ie, sbuf, psum, hbm), defaults to sbuf.
+name – the name of the tensor.
+
+Returns:
+a new tensor allocated on the buffer.

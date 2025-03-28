@@ -1,0 +1,8 @@
+{
+    "edgeops": 1,
+    "elementwise": 2,
+    "multi_element": 3,
+    "products": 4,
+    "matrixops": 5,
+    "mlops": 6
+}

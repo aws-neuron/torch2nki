@@ -1,0 +1,33 @@
+Based on the documentation and requirements, here's an improved implementation of the vector addition kernel using AWS NKI:
+
+```python
+import neuronxcc.nki.language as nl
+from neuronxcc import nki
+import numpy as np
+
+@nki.jit
+def vector_add_kernel(v1, v2):
+    """
+    Efficiently adds two vectors element-wise using NKI.
+    
+    Args:
+        v1: First input vector tensor
+        v2: Second input vector tensor
+        
+    Returns:
+        Result tensor containing element-wise sum
+    """
+    # Create output tensor in shared HBM memory
+    result = nl.ndarray(v1.shape, dtype=v1.dtype, buffer=nl.shared_hbm)
+    
+    # Calculate number of tiles needed based on vector length
+    tile_size = 128  # Maximum partition dimension size
+    num_tiles = (v1.shape[0] + tile_size - 1) // tile_size
+    
+    # Process vector in tiles
+    for i in nl.affine_range(num_tiles):
+        # Calculate indices for current tile
+        start = i * tile_size
+        
+        # Load tiles from input vectors
+        v1_tile = nl.load(v1[nl.ds

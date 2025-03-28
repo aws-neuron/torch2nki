@@ -1,0 +1,7 @@
+nki.language.sbuf
+
+Signature:
+nki.language.sbuf = Ellipsis
+
+Description:
+State Buffer - Only visible to each individual kernel instance in the SPMD grid, alias of nki.compiler.sbuf.auto_alloc()

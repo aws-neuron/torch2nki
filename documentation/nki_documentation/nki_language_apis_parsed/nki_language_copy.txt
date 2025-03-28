@@ -1,0 +1,15 @@
+nki.language.copy
+
+Signature:
+nki.language.copy(src, *, mask=None, dtype=None, **kwargs)
+
+Description:
+Create a copy of the src tile.
+
+Parameters:
+src – the source of copy, must be a tile in SBUF or PSUM.
+mask – (optional) a compile-time constant predicate that controls whether/how this instruction is executed (see NKI API Masking for details)
+dtype – (optional) data type to cast the output type to (see Supported Data Types for more information); if not specified, it will default to be the same as the data type of the input tile.
+
+Returns:
+a new tile with the same layout as src, this new tile will be in SBUF, but can be also assigned to a PSUM tensor.

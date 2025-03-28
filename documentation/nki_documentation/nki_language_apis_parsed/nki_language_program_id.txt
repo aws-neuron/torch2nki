@@ -1,0 +1,13 @@
+nki.language.program_id
+
+Signature:
+nki.language.program_id(axis)
+
+Description:
+Index of the current SPMD program along the given axis in the launch grid.
+
+Parameters:
+axis – The axis of the ND launch grid.
+
+Returns:
+The program id along axis in the launch grid

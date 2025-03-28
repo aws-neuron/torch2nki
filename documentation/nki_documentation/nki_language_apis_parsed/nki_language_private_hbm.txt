@@ -1,0 +1,7 @@
+nki.language.private_hbm
+
+Signature:
+nki.language.private_hbm = Ellipsis
+
+Description:
+HBM - Only visible to each individual kernel instance in the SPMD grid

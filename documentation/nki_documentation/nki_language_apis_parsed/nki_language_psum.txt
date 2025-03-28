@@ -1,0 +1,7 @@
+nki.language.psum
+
+Signature:
+nki.language.psum = Ellipsis
+
+Description:
+PSUM - Only visible to each individual kernel instance in the SPMD grid, alias of nki.compiler.psum.auto_alloc()

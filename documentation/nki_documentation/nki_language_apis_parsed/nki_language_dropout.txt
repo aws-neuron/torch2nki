@@ -1,0 +1,16 @@
+nki.language.dropout
+
+Signature:
+nki.language.dropout(x, rate, *, dtype=None, mask=None, **kwargs)
+
+Description:
+Randomly zeroes some of the elements of the input tile given a probability rate.
+
+Parameters:
+x – a tile.
+rate – a scalar value or a tile with 1 element, with the probability rate.
+dtype – (optional) data type to cast the output type to (see Supported Data Types for more information); if not specified, it will default to be the same as the data type of the input tile.
+mask – (optional) a compile-time constant predicate that controls whether/how this instruction is executed (see NKI API Masking for details)
+
+Returns:
+a tile with randomly zeroed elements of x.

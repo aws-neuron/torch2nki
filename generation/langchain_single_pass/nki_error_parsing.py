@@ -219,17 +219,20 @@ def extract_error_details(error_message):
     
     # Look for the actual error message (usually after 'ERROR:' or before the traceback)
     for i, line in enumerate(lines):
-        if line.startswith('ERROR:'):
+        if line.startswith('ERROR:') or line.startswith('❌'):
             error_description = line
             break
     
     # Find the line of code that caused the error (usually the line before 'AssertionError' or other exception)
+    error_line_count = 0
     for i in range(len(lines) - 1):
         if (i < len(lines) - 1 and 
             ('Error' in lines[i+1] or 'Exception' in lines[i+1]) and 
             'File' not in lines[i] and 
             'line' not in lines[i]):
-            error_line = lines[i].strip()
-            break
+            error_line_count += 1
+            if error_line_count == 2:  # This targets the second occurrence
+                error_line = lines[i].strip()
+                break
     
     return error_line, error_description

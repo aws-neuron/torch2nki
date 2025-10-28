@@ -1,63 +1,109 @@
-Generate a custom kernel for vector addition a using AWS Neural Kernel Interface (NKI). The kernel should:
+Generate a custom kernel for vector dot product a using AWS Neural Kernel Interface (NKI). The kernel should:
 - Use the proper NKI API integration.
 - Follow best practices for compilation.
 - Be well-structured, modular, and maintainable.
 
 
+
 Here is a python implementation for it:
 
-def vector_add(v1, v2):
+def vector_dot_product(v1, v2):
     """
-    Adds two vectors element-wise using an explicit loop.
+    Finds the dot product of two vectors element-wise using an explicit loop.
     :param v1: List of numbers (first vector)
     :param v2: List of numbers (second vector)
-    :return: List representing the sum of the two vectors
+    :return: Number representing the dot product of the two vectors
     """
     if len(v1) != len(v2):
         raise ValueError("Vectors must be of the same length")
     
-    result = []
+    result = 0  # Initialize the result variable
     for i in range(len(v1)):
-        result.append(v1[i] + v2[i])
+        result += v1[i] * v2[i]
     
     return result
 
 Don't use libnrt.so.1
 
 Make sure to return the output. Make sure to import nki: from neuronxcc import nki
+YOU DO NOT NEED TO PUT THE RETURN VARIABLE IN THE PARAMETERS. SIMPLY RETRUN RESULT AFTER STORING THE ANSWER
+FROM A DUMMY VARIABLE INTO RESULT. I REPEAT, YOU MUST HAVE THE LINE "return result" AS THE LAST LINE OF THE KERNEL.
+YOU SHOULD BE INITIALIZING A RESULT VARIABLE, THEN DOING THE OPERATION THROUGH A DUMMY VARIABLE, THEN STORING THE 
+DUMMY VARIABLE IN THE RESULT VARIABLE YOU ALREADY INITIALIZED, THEN RETURN THE RESULT.
+
+result = nl.ndarray(a_tensor.shape, dtype=a_tensor.dtype, buffer=nl.shared_hbm)
+this is how you should be initializing the result array at the start
+Remember to use this to initialize your result
 
 
+Here is an example for the dot product vector. The code for the vector add does not have to relate
+at all or follow the same format, I am simply giving it to you so can understand how the inputs and outputs
+to nki kernels work. for example, we should always be returning a result especially.
+Specifically, you do not need to use for i in range for this implementation. use the implementation 
+from the documentation and see if you can do it more simply.
 
 ```python
-import neuronxcc.nki.language as nl
 from neuronxcc import nki
+import neuronxcc.nki.language as nl
 
 @nki.jit
-def vector_add_kernel(v1, v2):
-    # Assume v1 and v2 are 1D tensors of the same size
-    size = v1.shape[0]
-
-    # Create an output tensor of the same size
-    result = nl.zeros(size, dtype=v1.dtype)
-
-    # Define the range for the loop
-    for i in nl.arange(size):
-        # Load the elements from the input tensors
-        a = nl.load(v1[i:i+1])
-        b = nl.load(v2[i:i+1])
+def nki_dot_product(a_tensor, b_tensor):
+    # Ensure both tensors are 1D
+    if a_tensor.shape[0] != b_tensor.shape[0]:
+        raise ValueError("Vectors must be of the same length")
         
-        # Perform element-wise addition
-        c = nl.add(a, b)
+    # Initialize a scalar to hold the sum result
+    sum_result = nl.zeros((), dtype=nl.float32, buffer=nl.psum)
 
-        # Store the result back into the output tensor
-        nl.store(result[i:i+1], c)
+    # Process the dot product
+    for i in nl.affine_range(a_tensor.shape[0]):
+        a_value = nl.load(a_tensor[i])
+        b_value = nl.load(b_tensor[i])
+        sum_result += nl.multiply(a_value, b_value)
 
-    return result
+    return sum_result
 ```
 
-The error "TypeError: 'int' object is not iterable" occurs because nl.zeros(size, dtype=v1.dtype) expects a tuple for the size argument, but you're passing an integer (size).
 
 ### The following is NKI documentation you may find useful:
+Unsupported Syntax:
+
+Top-level tensors must be on HBM. The input and output tensors of the top-level NKI kernel (the kernel function decorated with nki_jit/nki.baremetal or called by JAX nki_call) must be located in HBM. We currently do not support using tensors stored in SBUF or PSUM as the input or output of the top-level kernel. Tensors must be loaded from HBM into SBUF before use, and output tensors must be stored from SBUF back into HBM. See nl.load and nl.store.
+Indexing:
+Tile on SBUF/PSUM must have at least 2 dimensions as described here. If using a 1D tile on SBUF/PSUM, users may get an “Insufficient rank” error. Workaround this by creating a 2D tile, e.g.,
+buf = nl.zeros((128, ), dtype=dtype, buffer=nl.sbuf)  # this won't work
+buf = nl.zeros((128, 1), dtype=dtype, buffer=nl.sbuf) # this works
+
+Users must index their [N, 1] or [1, M] shaped 2D buffers with both indices, do my_sbuf[0:N, 0] or my_sbuf[0, 0:M] to access them, since accessing in 1D my_sbuf[0:N] won’t work.
+Use nl.arange for indirect load/store access indexing, nl.mgrid won’t work. See code examples in nl.load and nl.store.
+If indexing with [0, 0] gets internal errors, try using [0:1, 0:1] or nl.mgrid[0:1, 0:1] instead.
+If indexing with [0:1, ...] gets internal errors, try using [0, ...] instead.
+Masks conjunction: Use & to combine masks. We do not support using and for masks. See examples in NKI API Masking.
+nisa.bn_stats does not support mask on the reduce dimension, the mask sent to bn_stats could not contain any indices from the reduction dimension.
+Partition dimension broadcasting is not supported on operator overloads (i.e, +, -, *, /, <<, >>, etc), use nki.language APIs instead (i.e, nl.add, nl.multiply, …).
+When direct allocation API is used, non-IO HBM tensors are not supported.
+All tensors declared with buffer=nl.shared_hbm must be returned as the result of the kernel.
+Tensors declared with buffer=nl.hbm or buffer=nl.private_hbm are not allowed.
+An error “[NKI005] (float32 [128, 512] %'<name of the hbm tensor>':5)0: DRAM location of kind Internal mapping failed. Only input/output/const DRAM location is supported!” will be thrown when such tensor is encountered.
+Unexpected Behavior:
+
+Simulation using nki.simulate_kernel:
+Custom data types like nl.float32r, nl.bfloat16, nl.float8_e4m3, and nl.float8_e5m2 simulate in fp32 precision. Also, NumPy API calls outside of the NKI kernel, such as np.allclose may not work with the above types.
+nl.rand generates the same values for subsequent calls to nl.rand().
+nl.random_seed is a no-op in simulation.
+nisa.dropout is a no-op in simulation.
+Masks don’t work in simulation, and garbage data is generated in tensor elements that are supposed to be untouched based on API masking.
+Execution:
+Unwritten output tensor will have garbage data. See detail here.
+nl.invert (aka bitwise_not) produces incorrect result with bool input type, use int8 type instead.
+Profiler:
+When using neuron-profile use the flag --disable-dge to workaround a temporary issue with DMA information. See the Profile using neuron-profile section for more details.
+Optimization:
+Users need to declare their NKI buffers as small as possible to avoid buffer overflow errors. An error “[GCA046] Some infinite-cost nodes remain” may mean there’s a buffer overflow, workaround this by creating smaller local buffers.
+Compiler passes:
+NKI ISA API may not be one-to-one with generated hardware ISA instructions. The compiler may aid in the support of these instruction calls by adding additional instructions.
+
+
 Supported Data Types
 
 Below lists all supported data types by NKI. Almost all the NKI APIs accept a data type field, dtype, which can either be a NumPy equivalent type or a nki.language data type.

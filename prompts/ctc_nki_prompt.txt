@@ -1,0 +1,546 @@
+Generate a custom kernel for connectionist temporal classification loss using AWS Neural Kernel Interface (NKI). The kernel should:
+- Use the proper NKI API integration.
+- Follow best practices for compilation.
+- Be well-structured, modular, and maintainable.
+
+Here is the pyTorch documentation. Use this to reference the parameters, etc.
+
+PLEASE STOP USING PASS / SIMPLIFIED WITH COMMENTS. I WANT YOU TO GENERATE THE WHOLE WHOLE KERNEL, AND DO NOT LEAVE OUT ANY PART. THE GENERATED KERNEL SHOULD BE ABLE TO PASS A TESTBENCH FOR CTC LOSS WITHOUT ANY MODIFICATIONS. I REPEAT, PLEASE WRITE THE ENTIRE KERNEL AND DO NOT SHORTEN FOR BREVITY SAKE. THANKS!
+
+Calculates loss between a continuous (unsegmented) time series and a target sequence. CTCLoss sums over the probability of possible alignments of input to target, producing a loss value which is differentiable with respect to each input node. The alignment of input to target is assumed to be “many-to-one”, which limits the length of the target sequence such that it must be 
+≤
+≤ the input length.
+
+Parameters
+blank (int, optional) – blank label. Default 
+0
+0.
+
+reduction (str, optional) – Specifies the reduction to apply to the output: 'none' | 'mean' | 'sum'. 'none': no reduction will be applied, 'mean': the output losses will be divided by the target lengths and then the mean over the batch is taken, 'sum': the output losses will be summed. Default: 'mean'
+
+zero_infinity (bool, optional) – Whether to zero infinite losses and the associated gradients. Default: False Infinite losses mainly occur when the inputs are too short to be aligned to the targets.
+
+Shape:
+Log_probs: Tensor of size 
+(
+T
+,
+N
+,
+C
+)
+(T,N,C) or 
+(
+T
+,
+C
+)
+(T,C), where 
+T
+=
+input length
+T=input length, 
+N
+=
+batch size
+N=batch size, and 
+C
+=
+number of classes (including blank)
+C=number of classes (including blank). The logarithmized probabilities of the outputs (e.g. obtained with torch.nn.functional.log_softmax()).
+
+Targets: Tensor of size 
+(
+N
+,
+S
+)
+(N,S) or 
+(
+sum
+⁡
+(
+target_lengths
+)
+)
+(sum(target_lengths)), where 
+N
+=
+batch size
+N=batch size and 
+S
+=
+max target length, if shape is 
+(
+N
+,
+S
+)
+S=max target length, if shape is (N,S). It represents the target sequences. Each element in the target sequence is a class index. And the target index cannot be blank (default=0). In the 
+(
+N
+,
+S
+)
+(N,S) form, targets are padded to the length of the longest sequence, and stacked. In the 
+(
+sum
+⁡
+(
+target_lengths
+)
+)
+(sum(target_lengths)) form, the targets are assumed to be un-padded and concatenated within 1 dimension.
+
+Input_lengths: Tuple or tensor of size 
+(
+N
+)
+(N) or 
+(
+)
+(), where 
+N
+=
+batch size
+N=batch size. It represents the lengths of the inputs (must each be 
+≤
+T
+≤T). And the lengths are specified for each sequence to achieve masking under the assumption that sequences are padded to equal lengths.
+
+Target_lengths: Tuple or tensor of size 
+(
+N
+)
+(N) or 
+(
+)
+(), where 
+N
+=
+batch size
+N=batch size. It represents lengths of the targets. Lengths are specified for each sequence to achieve masking under the assumption that sequences are padded to equal lengths. If target shape is 
+(
+N
+,
+S
+)
+(N,S), target_lengths are effectively the stop index 
+s
+n
+s 
+n
+​
+  for each target sequence, such that target_n = targets[n,0:s_n] for each target in a batch. Lengths must each be 
+≤
+S
+≤S If the targets are given as a 1d tensor that is the concatenation of individual targets, the target_lengths must add up to the total length of the tensor.
+
+Output: scalar if reduction is 'mean' (default) or 'sum'. If reduction is 'none', then 
+(
+N
+)
+(N) if input is batched or 
+(
+)
+() if input is unbatched, where 
+N
+=
+batch size
+N=batch size.
+
+Examples:
+
+>>> # Target are to be padded
+>>> T = 50      # Input sequence length
+>>> C = 20      # Number of classes (including blank)
+>>> N = 16      # Batch size
+>>> S = 30      # Target sequence length of longest target in batch (padding length)
+>>> S_min = 10  # Minimum target length, for demonstration purposes
+>>>
+>>> # Initialize random batch of input vectors, for *size = (T,N,C)
+>>> input = torch.randn(T, N, C).log_softmax(2).detach().requires_grad_()
+>>>
+>>> # Initialize random batch of targets (0 = blank, 1:C = classes)
+>>> target = torch.randint(low=1, high=C, size=(N, S), dtype=torch.long)
+>>>
+>>> input_lengths = torch.full(size=(N,), fill_value=T, dtype=torch.long)
+>>> target_lengths = torch.randint(low=S_min, high=S, size=(N,), dtype=torch.long)
+>>> ctc_loss = nn.CTCLoss()
+>>> loss = ctc_loss(input, target, input_lengths, target_lengths)
+>>> loss.backward()
+>>>
+>>>
+>>> # Target are to be un-padded
+>>> T = 50      # Input sequence length
+>>> C = 20      # Number of classes (including blank)
+>>> N = 16      # Batch size
+>>>
+>>> # Initialize random batch of input vectors, for *size = (T,N,C)
+>>> input = torch.randn(T, N, C).log_softmax(2).detach().requires_grad_()
+>>> input_lengths = torch.full(size=(N,), fill_value=T, dtype=torch.long)
+>>>
+>>> # Initialize random batch of targets (0 = blank, 1:C = classes)
+>>> target_lengths = torch.randint(low=1, high=T, size=(N,), dtype=torch.long)
+>>> target = torch.randint(low=1, high=C, size=(sum(target_lengths),), dtype=torch.long)
+>>> ctc_loss = nn.CTCLoss()
+>>> loss = ctc_loss(input, target, input_lengths, target_lengths)
+>>> loss.backward()
+>>>
+>>>
+>>> # Target are to be un-padded and unbatched (effectively N=1)
+>>> T = 50      # Input sequence length
+>>> C = 20      # Number of classes (including blank)
+>>>
+>>> # Initialize random batch of input vectors, for *size = (T,C)
+>>> input = torch.randn(T, C).log_softmax(1).detach().requires_grad_()
+>>> input_lengths = torch.tensor(T, dtype=torch.long)
+>>>
+>>> # Initialize random batch of targets (0 = blank, 1:C = classes)
+>>> target_lengths = torch.randint(low=1, high=T, size=(), dtype=torch.long)
+>>> target = torch.randint(low=1, high=C, size=(target_lengths,), dtype=torch.long)
+>>> ctc_loss = nn.CTCLoss()
+>>> loss = ctc_loss(input, target, input_lengths, target_lengths)
+>>> loss.backward()
+
+Here is the NumPy kernel for the operation connectionist temporal classification loss:
+
+Here is a python function that calculates the connectionist temporal classification loss:
+
+import numpy as np
+
+
+class Alphabet:
+    blank_label = '^'
+    pure_alphabet = ['a', 'b', 'c', 'd']
+    alphabet_letter_to_ind = {ch: ind for ind, ch in enumerate(pure_alphabet + [blank_label])}
+    alphabet_ind_to_letter = {ind: ch for ind, ch in enumerate(pure_alphabet + [blank_label])}
+    blank_ind = alphabet_letter_to_ind[blank_label]
+
+
+def are_equal(f1, f2):
+    return np.isclose(f1, f2)
+
+
+def pad_label(label):
+    return '^%s^' % '^'.join(label)
+
+
+def create_alpha_beta(gt_label, outputs):
+    padded_gt_label = pad_label(gt_label)  # l' from the paper. gt_label is l from the paper
+    num_time_steps = outputs.shape[0]
+    padded_gt_label_length = len(padded_gt_label)
+    last_padded_ind = padded_gt_label_length - 1
+    blank_label = Alphabet.blank_label
+
+    # To avoid expensive recursion, we use dynamic programming to fill tables of size (T, |l'|) for alpha, beta.
+
+    # Alpha:
+    alpha_table = np.zeros((num_time_steps, padded_gt_label_length))
+
+    def alpha(t, s):
+        if s < 0 or s >= len(padded_gt_label):
+            return 0
+
+        current_padded_character = padded_gt_label[s]
+        current_padded_label_score = outputs[t, Alphabet.alphabet_letter_to_ind[current_padded_character]]
+
+        if t == 0:
+            if s == 0:
+                return outputs[0, Alphabet.blank_ind]
+            elif s == 1:
+                return current_padded_label_score
+            else:
+                return 0
+
+        # (6, 7) from the paper. No need to call alpha for previous time steps, because it was already calculated
+        alpha_tag_t_s = alpha_table[t - 1, s] + (alpha_table[t - 1, s - 1] if s-1 >= 0 else 0)
+        if current_padded_character == blank_label or (s >= 2 and padded_gt_label[s-2] == current_padded_character):
+            return alpha_tag_t_s * current_padded_label_score
+        else:
+            return (alpha_tag_t_s + (alpha_table[t - 1, s - 2] if s - 2 >= 0 else 0)) * current_padded_label_score
+
+    for t in range(0, num_time_steps):
+        for s in range(0, padded_gt_label_length):
+            alpha_table[t, s] = alpha(t, s)
+
+    # Beta:
+    beta_table = np.zeros((num_time_steps, padded_gt_label_length))
+
+    def beta(t, s):
+        if s < 0 or s >= len(padded_gt_label):
+            return 0
+
+        current_padded_character = padded_gt_label[s]
+        current_padded_label_score = outputs[t, Alphabet.alphabet_letter_to_ind[current_padded_character]]
+        last_time_step = outputs.shape[0] - 1
+
+        if t == last_time_step:
+            if s == last_padded_ind:
+                return outputs[last_time_step, Alphabet.blank_ind]
+            elif s == last_padded_ind - 1:
+                return current_padded_label_score
+            else:
+                return 0
+
+        # (10, 11) from the paper. No need to call beta for previous time steps, because it was already calculated
+        beta_tag_t_s = beta_table[t + 1, s] + (beta_table[t + 1, s + 1] if s + 1 <= last_padded_ind else 0)
+        if current_padded_character == blank_label or \
+                (s + 2 <= last_padded_ind and padded_gt_label[s+2] == current_padded_character):
+            return beta_tag_t_s * current_padded_label_score
+        else:
+            return (beta_tag_t_s +
+                    (beta_table[t + 1, s + 2] if s + 2 <= last_padded_ind else 0)) * current_padded_label_score
+
+    for t in range(num_time_steps - 1, -1, -1):
+        for s in range(padded_gt_label_length - 1, -1, -1):
+            beta_table[t, s] = beta(t, s)
+
+    return alpha_table, beta_table
+
+def calculate_gradients_for_ctc_layer(outputs, gt_label):
+    assert outputs.shape[0] >= len(gt_label)
+    alpha_dp_table, beta_dp_table = create_alpha_beta(gt_label, outputs)
+
+    padded_gt_label = pad_label(gt_label)
+    gradients = np.zeros_like(outputs)
+
+    score_last = alpha_dp_table[outputs.shape[0] - 1, len(padded_gt_label) - 1]
+    score_before_last = alpha_dp_table[outputs.shape[0] - 1, len(padded_gt_label) - 2]
+    p_l_given_ctc = score_last + score_before_last
+
+    for t in range(outputs.shape[0]):
+        for k in range(outputs.shape[1]):
+
+            # Formula 15:
+            d_p_d_ytk = 0
+            lab_lk = np.nonzero(
+                list(map(lambda x: 1 if Alphabet.alphabet_ind_to_letter[k] in x else 0, padded_gt_label)))[0]
+            for s in lab_lk:
+                d_p_d_ytk += alpha_dp_table[t, s] * beta_dp_table[t, s]
+
+            d_p_d_ytk /= (outputs[t, k] ** 2)
+            d_lnp_d_ytk = (1. / p_l_given_ctc) * d_p_d_ytk
+            gradients[t, k] = d_lnp_d_ytk
+    return gradients
+
+
+Don't use libnrt.so.1
+
+Make sure to return the output. Make sure to import nki: from neuronxcc import nki
+YOU DO NOT NEED TO PUT THE RETURN VARIABLE IN THE PARAMETERS. SIMPLY RETRUN RESULT AFTER STORING THE 
+ANSWER FROM A DUMMY VARIABLE INTO RESULT. I REPEAT, YOU MUST HAVE THE LINE "return result" AS THE LAST LINE OF THE KERNEL.
+YOU SHOULD BE INITIALIZING A RESULT VARIABLE, THEN DOING THE OPERATION THROUGH A DUMMY VARIABLE, THEN STORING THE 
+DUMMY VARIABLE IN THE RESULT VARIABLE YOU ALREADY INITIALIZED, THEN RETURN THE RESULT.
+
+Here is an example for the dot product vector. The code for the vector cumprod does not have to relate
+at all or follow the same format, I am simply giving it to you so you can understand how the inputs and outputs
+to nki kernels work. for example, we should always be returning a result especially.
+Specifically, you do not need to use for i in range for this implementation. use the implementation 
+from the documentation and see if you can do it more simply.
+
+```python
+from neuronxcc import nki
+import neuronxcc.nki.language as nl
+
+@nki.jit
+def nki_dot_product(a_tensor, b_tensor):
+    # Ensure both tensors are 1D
+    if a_tensor.shape[0] != b_tensor.shape[0]:
+        raise ValueError("Vectors must be of the same length")
+        
+    # Initialize a scalar to hold the sum result
+    sum_result = nl.zeros((), dtype=nl.float32, buffer=nl.psum)
+
+    # Process the dot product
+    for i in nl.affine_range(a_tensor.shape[0]):
+        a_value = nl.load(a_tensor[i])
+        b_value = nl.load(b_tensor[i])
+        sum_result += nl.multiply(a_value, b_value)
+
+    return sum_result
+
+    
+### The following is NKI documentation you may find useful:
+Supported Data Types
+
+Below lists all supported data types by NKI. Almost all the NKI APIs accept a data type field, dtype, which can either be a NumPy equivalent type or a nki.language data type.
+
+Accepted dtype Field by NKI APIs:
+----------------------------------------------
+Integer:
+- 8-bit unsigned integer: nki.language.uint8, numpy.uint8
+- 8-bit signed integer: nki.language.int8, numpy.int8
+- 16-bit unsigned integer: nki.language.uint16, numpy.uint16
+- 16-bit signed integer: nki.language.int16, numpy.int16
+- 32-bit unsigned integer: nki.language.uint32, numpy.uint32
+- 32-bit signed integer: nki.language.int32, numpy.int32
+
+Float:
+- float8_e4m3 (1S,4E,3M): nki.language.float8_e4m3
+- float8_e5m2 (1S,5E,2M): nki.language.float8_e5m2
+- float16 (1S,5E,10M): nki.language.float16, numpy.float16
+- bfloat16 (1S,8E,7M): nki.language.bfloat16
+- tfloat32 (1S,8E,10M): nki.language.tfloat32
+- float32 (1S,8E,23M): nki.language.float32, numpy.float32
+
+Boolean:
+- boolean stored as uint8: nki.language.bool_, numpy.bool
+
+S: sign bits, E: exponent bits, M: mantissa bits
+
+
+
+NKI API Masking
+
+All nki.language and nki.isa APIs accept an optional input field, mask. The mask field is an execution predicate known at compile-time, which informs the compiler to skip generating the instruction or generate the instruction with a smaller input tile shape. Masking is handled completely by Neuron compiler and hence does not incur any performance overhead in the generated instructions.
+
+The mask can be created using comparison expressions (e.g., a < b) or multiple comparison expressions concatenated with & (e.g., (a < b) & (c > d)). The left- or right-hand side expression of each comparator must be an affine expression of nki.language.arange(), nki.language.affine_range() or nki.language.program_id() . Each comparison expression should indicate which range of indices along one of the input tile axes should be valid for the computation. For example, assume we have an input tile in_tile of shape (128, 512), and we would like to perform a square operation on this tile for elements in [0:64, 0:256], we can invoke the nki.language.square() API using the following:
+
+import neuronxcc.nki.language as nl
+
+...
+i_p = nl.arange(128)[:, None]
+i_f = nl.arange(512)[None, :]
+
+out_tile = nl.square(in_tile, mask=((i_p<64) & (i_f<256)))
+
+The above example will be lowered into a hardware ISA instruction that only processes 64x256 elements by Neuron Compiler.
+
+The above mask definition works for most APIs where there is only one input tile or both input tiles share the same axes. One exception is the nki.language.matmul and similarly nki.isa.nc_matmul API, where the two input tiles lhs and rhs contain three unique axes:
+
+The contraction axis: both lhs and rhs partition axis (lhs_rhs_p)
+
+The first axis of matmul output: lhs free axis (lhs_f)
+
+The second axis of matmul output: rhs free axis (rhs_f)
+
+As an example, let’s assume we have lhs tile of shape (sz_p, sz_m) and rhs tile of shape (sz_p, sz_n), and we call nki.language.matmul to calculate an output tile of shape (sz_m, sz_n):
+
+import neuronxcc.nki.language as nl
+
+i_p = nl.arange(sz_p)[:, None]
+
+i_lhs_f = nl.arange(sz_m)[None, :]
+i_rhs_f = nl.arange(sz_n)[None, :] # same as `i_rhs_f = i_lhs_f`
+
+result = nl.matmul(lhs[i_p, i_lhs_f], rhs[i_p, i_rhs_f], transpose_x=True)
+
+Since both i_lhs_f and i_rhs_f are identical to the Neuron Compiler, the Neuron Compiler cannot distinguish the two input axes if they were to be passed into the mask field directly.
+
+Therefore, we introduce “operand masking” syntax for matmult APIs to let users to precisely define the masking on the inputs to the matmult APIs (currently only matmult APIs support operand masking, subject to changes in future releases). Let’s assume we need to constraint sz_m <= 64 and sz_n <= 256:
+
+import neuronxcc.nki.language as nl
+
+i_p = nl.arange(sz_p)[:, None]
+
+i_lhs_f = nl.arange(sz_m)[None, :]
+i_rhs_f = nl.arange(sz_n)[None, :] # same as `i_rhs_f = i_lhs_f`
+
+i_lhs_f_virtual = nl.arange(sz_m)[None, :, None]
+
+result = nl.matmul(lhs_T[i_lhs_f <= 64], rhs[i_rhs_f <= 256], transpose_x=True)
+
+There are two notable use cases for masking:
+1. When the tiling factor doesn’t divide the tensor dimension sizes
+2. Skip ineffectual instructions that compute known output values
+
+We will present an example of the first use case below. Let’s assume we would like to evaluate the exponential function on an input tensor of shape [sz_p, sz_f] from HBM. Since the input to nki.language.load/nki.language.store/nki.language.exp expects a tile with a partition axis size not exceeding nki.language.tile_size.pmax == 128, we should loop over the input tensor using a tile size of [nki.language.tile_size.pmax, sz_f].
+
+However, sz_p is not guaranteed to be an integer multiple of nki.language.tile_size.pmax. In this case, one option is to write a loop with trip count of sz_p // nki.language.tile_size.pmax followed by a single invocation of nki.language.exp with an input tile of shape [sz_p % nki.language.tile_size.pmax, sz_f]. This effectively “unrolls” the last instance of tile computation, which could lead to messy code in a complex kernel. Using masking here will allow us to avoid such unrolling, as illustrated in the example below:
+
+import neuronxcc.nki.language as nl
+from torch_neuronx import nki_jit
+
+@nki_jit
+def tensor_exp_kernel_(in_tensor, out_tensor):
+
+sz_p, sz_f = in_tensor.shape
+
+i_f = nl.arange(sz_f)[None, :]
+
+trip_count = math.ceil(sz_p/nl.tile_size.pmax)
+
+for p in nl.affine_range(trip_count):
+    # Generate tensor indices for the input/output tensors
+    # pad index to pmax, for simplicity
+    i_p = p * nl.tile_size.pmax + nl.arange(nl.tile_size.pmax)[:, None]
+
+    # Load input data from external memory to on-chip memory
+    # only read up to sz_p
+    in_tile = nl.load(in_tensor[i_p, i_f], mask=(i_p < sz_p))
+
+    # perform the computation
+    out_tile = nl.exp(in_tile)
+
+    # store the results back to external memory
+    # only write up to sz_p
+    nl.store(out_tensor[i_p, i_f], value=out_tile, mask=(i_p<sz_p))
+
+NKI Type Promotion
+
+When the data types (dtypes) of inputs to an arithmetic operation (i.e., add, multiply, tensor_tensor, etc.) differ, we promote the dtypes following the rules below:
+
+(float, integer): Pick the float type.
+Example:
+(np.int32, np.float16) -> np.float16
+(np.uint16, nl.tfloat32) -> nl.tfloat32
+
+(float, float): Pick the wider float type or a new widened type that fits the values range.
+Example:
+(np.float32, nl.tfloat32) -> np.float32
+(np.float32, nl.bfloat16) -> np.float32
+(np.float16, nl.bfloat16) -> np.float32 (new widened type)
+(nl.float8_e4m3, np.float16) -> np.float16
+(nl.float8_e4m3, nl.bfloat16) -> nl.bfloat16
+(nl.float8_e4m3, nl.float8_e5m2) -> nl.bfloat16 (new widened type)
+
+(int, int): Pick the wider type or a new widened type that fits the values range.
+Example:
+(np.int16, np.int32) -> np.int32
+(np.uint8, np.uint16) -> np.uint16
+(np.uint16, np.int32) -> np.int32
+(np.int8, np.uint8) -> np.int16 (new widened type)
+(np.int8, np.uint16) -> np.int32 (new widened type)
+(np.int32, np.uint32) -> np.float32 (new widened type is float32, since int64 isn’t supported on the hardware)
+
+The output of the arithmetic operation will get the promoted type by default.
+
+Note: The Vector Engine internally performs most of the computation in FP32 (see Vector Engine) and casts the output back to the specific type.
+x = np.ndarray((N, M), dtype=nl.float8_e4m3)
+y = np.ndarray((N, M), dtype=np.float16)
+z = nl.add(x, y) # calculation done in FP32, output cast to np.float16
+assert z.dtype == np.float16
+
+To prevent the compiler from automatically widening output dtype based on mismatching input dtypes, you may explicitly set the output dtype in the arithmetic operation API. This would be useful if the output is passed into another operation that benefits from a smaller dtype.
+
+x = np.ndarray((N, M), dtype=nl.bfloat16)
+y = np.ndarray((N, M), dtype=np.float16)
+z = nl.add(x, y, dtype=nl.bfloat16)  # without explicit `dtype`, `z.dtype` would have been np.float32
+assert z.dtype == nl.bfloat16
+
+
+Weakly typed scalars (scalar values where the type wasn’t explicitly specified) will be inferred as the widest dtype supported by hardware:
+bool --> uint8
+integer --> int32
+floating --> float32
+
+Doing an arithmetic operation with a scalar may result in a larger output type than expected, for example:
+(np.int8, 2) -> np.int32
+(np.float16, 1.2) -> np.float32
+
+To prevent larger dtypes from being inferred from weak scalar types, do either of:
+
+1. Explicitly set the datatype of the scalar, like np.int8(2), so that the output type is what you desire:
+x = np.ndarray((N, M), dtype=np.float16)
+y = np.float16(2)
+z = nl.add(x, y)
+assert z.dtype == np.float16
+
+2. Explicitly set the output dtype of the arithmetic operation:
+x = np.ndarray((N, M), dtype=np.int16)
+y = 2
+z = nl.add(x, y, dtype=nl.bfloat16)
+assert z.dtype == nl.bfloat16
+
+Note: The Vector Engine internally performs most of the computation in FP32 (see Vector Engine) and casts the output back to the specific type.
